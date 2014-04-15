@@ -41,6 +41,12 @@ public class SimpleHttpClient {
         _httpClient = builder.build();
     }
 
+    /**
+     * Returns a HTTPResponse by performing a GET operation on the given url.
+     * @param url
+     * @return
+     * @throws Exception
+     */
     public HttpResponse get(String url) throws Exception {
         if(Strings.isNullOrEmpty(url)){
             return null;

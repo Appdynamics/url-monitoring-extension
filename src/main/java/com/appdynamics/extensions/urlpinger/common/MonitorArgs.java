@@ -6,7 +6,7 @@ import com.google.common.base.Strings;
 import java.util.Map;
 
 /**
- * Created by kunal.gupta on 4/13/14.
+ * A POJO for task arguments from monitor.xml
  */
 public class MonitorArgs {
 

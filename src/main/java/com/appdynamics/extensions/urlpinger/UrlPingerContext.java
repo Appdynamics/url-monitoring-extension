@@ -7,9 +7,7 @@ import com.appdynamics.extensions.urlpinger.http.SimpleHttpConfig;
 
 import java.io.IOException;
 
-/**
- * Created by kunal.gupta on 4/10/14.
- */
+
 public class UrlPingerContext {
 
     public static final int DEFAULT_TIMEOUT_MS = 10000;

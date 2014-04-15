@@ -3,7 +3,7 @@ package com.appdynamics.extensions.urlpinger;
 import java.util.Date;
 
 /**
- * Created by kunal.gupta on 4/10/14.
+ * Metrics for url pinger extension.
  */
 public class UrlPingerMetrics {
     private String displayName;

@@ -8,6 +8,9 @@ import org.apache.log4j.Logger;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
+/**
+ * Unit of task performed by the UrlPinger monitoring extension.
+ */
 
 public class UrlPingerTask implements Callable<UrlPingerMetrics> {
 

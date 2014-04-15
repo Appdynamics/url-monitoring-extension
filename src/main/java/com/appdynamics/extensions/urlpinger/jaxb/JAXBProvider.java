@@ -7,7 +7,7 @@ import java.io.File;
 
 /**
  *
- *
+ * A JAXB Provider that unmarshals xml.
  */
 public class JAXBProvider<T> {
 

@@ -1,11 +1,11 @@
 <monitor-urls>
     <monitor-url>
         <displayName>AppDynamics</displayName>
-        <url>www.appdynamics.com</url>
+        <url>http://www.appdynamics.com</url>
     </monitor-url>
     <monitor-url>
         <displayName>Google</displayName>
-        <url>www.google.com</url>
+        <url>https://www.google.com</url>
     </monitor-url>
     <monitor-url>
         <displayName>Amazon</displayName>
@@ -13,6 +13,6 @@
     </monitor-url>
     <monitor-url>
         <displayName>eBay</displayName>
-        <url>www.ebay.com</url>
+        <url>http://www.ebay.com</url>
     </monitor-url>
 </monitor-urls>

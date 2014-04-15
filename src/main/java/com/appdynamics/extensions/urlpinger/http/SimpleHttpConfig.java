@@ -1,9 +1,7 @@
 package com.appdynamics.extensions.urlpinger.http;
 
-import java.util.Map;
-
 /**
- * Created by kunal.gupta on 4/13/14.
+ * POJO for http config parameters.
  */
 public class SimpleHttpConfig {
 
