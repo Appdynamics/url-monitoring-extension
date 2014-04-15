@@ -117,8 +117,8 @@ public class UrlPingerMonitor extends AManagedMonitor {
                 timeRollupType,
                 clusterRollupType
         );
-        System.out.println(EXTENSION_PREFIX + "Sending [" + aggType + MetricConstants.METRIC_SEPARATOR + timeRollupType + MetricConstants.METRIC_SEPARATOR + clusterRollupType
-                + "] metric = " + metricName + " = " + metricValue);
+      //  System.out.println(EXTENSION_PREFIX + "Sending [" + aggType + MetricConstants.METRIC_SEPARATOR + timeRollupType + MetricConstants.METRIC_SEPARATOR + clusterRollupType
+      //          + "] metric = " + metricName + " = " + metricValue);
         if (logger.isDebugEnabled()) {
             logger.debug(EXTENSION_PREFIX + "Sending [" + aggType + MetricConstants.METRIC_SEPARATOR + timeRollupType + MetricConstants.METRIC_SEPARATOR + clusterRollupType
                     + "] metric = " + metricName + " = " + metricValue);
