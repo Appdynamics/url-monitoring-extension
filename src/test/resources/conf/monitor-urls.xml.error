@@ -1,0 +1,16 @@
+<monitor-url>
+        <displayName>AppDynamics</displayName>
+        <url>https://www.appdynamics.com</url>
+    </monitor-url>
+    <monitor-url>
+        <displayName>Google</displayName>
+        <url>https://www.google.com</url>
+    </monitor-url>
+    <monitor-url>
+        <displayName>Amazon</displayName>
+        <url>https://www.amazon.com</url>
+    </monitor-url>
+    <monitor-url>
+        <displayName>eBay</displayName>
+        <url>https://www.ebay.com</url>
+    </monitor-url>
