@@ -6,8 +6,7 @@ An AppDynamics extension to be used with a stand alone Java machine agent to cal
 ## Metrics Provided ##
   1. Http status code.
   2. Response time in ms.
-  3. Response size in bytes.
-  
+
 
 ## Installation ##
 
@@ -63,7 +62,7 @@ An AppDynamics extension to be used with a stand alone Java machine agent to cal
   ```
 
 ## Custom Dashboard ##
-
+![](https://github.com/Appdynamics/url-pinger-monitoring-extension/raw/master/url-pinger-dashboard.png)
 
 ## Contributing ##
 
