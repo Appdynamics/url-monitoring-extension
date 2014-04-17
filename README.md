@@ -62,6 +62,8 @@ An AppDynamics extension to be used with a stand alone Java machine agent to pin
    
   ```
 
+## Custom Dashboard ##
+
 
 ## Contributing ##
 
