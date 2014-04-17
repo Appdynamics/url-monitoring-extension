@@ -13,19 +13,19 @@ public class JAXBProviderTest {
     public static final String CONF_FILE = "monitor-urls.xml";
     public static final String ERROR_CONF_FILE = "monitor-urls.xml.error";
 
-    JAXBProvider<MonitorUrls> jaxbProvider = new JAXBProvider<MonitorUrls>();
+    JAXBProvider jaxbProvider = new JAXBProvider(MonitorUrls.class);
 
     @Test
     public void canUnmarshalIntoObj() throws JAXBException {
         String filepath = this.getClass().getResource(File.separator + CONF_DIR + File.separator + CONF_FILE).getFile();
-        MonitorUrls monitorUrls = jaxbProvider.unmarshal(filepath,MonitorUrls.class);
+        MonitorUrls monitorUrls = (MonitorUrls)jaxbProvider.unmarshal(filepath);
         assert(monitorUrls != null);
     }
 
     @Test(expected = JAXBException.class)
     public void throwsExceptionForInvalidXml() throws JAXBException {
         String filepath = this.getClass().getResource(File.separator + CONF_DIR + File.separator + ERROR_CONF_FILE).getFile();
-        MonitorUrls monitorUrls = jaxbProvider.unmarshal(filepath,MonitorUrls.class);
+        MonitorUrls monitorUrls = (MonitorUrls)jaxbProvider.unmarshal(filepath);
         assert(monitorUrls == null);
     }
 

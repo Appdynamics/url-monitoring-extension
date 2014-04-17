@@ -1,7 +1,5 @@
 package com.appdynamics.extensions.urlpinger;
 
-import com.appdynamics.extensions.urlpinger.common.MonitorArgs;
-import com.appdynamics.extensions.urlpinger.jaxb.JAXBProvider;
 import com.appdynamics.extensions.urlpinger.jaxb.MonitorUrl;
 import com.appdynamics.extensions.urlpinger.jaxb.MonitorUrls;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
@@ -23,56 +21,61 @@ import java.util.concurrent.*;
  */
 public class UrlPingerMonitor extends AManagedMonitor {
 
-    private static final int NUMBER_OF_THREADS = 10;
-    private static final String EXTENSION_PREFIX = "[AppDExt] :: ";
-    private static final String CONF_MONITOR_FILEPATH = File.separator + "conf" + File.separator + "monitor-urls.xml";
-
     ExecutorService threadPool;
-    JAXBProvider<MonitorUrls> jaxbProvider;
 
+    private static final int NUMBER_OF_THREADS = 10;
     public static final Logger logger = Logger.getLogger(UrlPingerMonitor.class);
 
-    public UrlPingerMonitor(){
-        this(Executors.newFixedThreadPool(NUMBER_OF_THREADS),new JAXBProvider<MonitorUrls>());
+    public UrlPingerMonitor() {
+        this(Executors.newFixedThreadPool(NUMBER_OF_THREADS));
     }
 
-    public UrlPingerMonitor(ExecutorService threadPool, JAXBProvider<MonitorUrls> jaxbProvider){
-        String message = "Using Monitor Version [" + getImplementationVersion() + "]";
+    public UrlPingerMonitor(ExecutorService threadPool){
+        String message = MetricConstants.EXTENSION_PREFIX + "Using Monitor Version [" + getImplementationVersion() + "]";
         logger.info(message);
         System.out.println(message);
         this.threadPool = threadPool;
-        this.jaxbProvider = jaxbProvider;
     }
 
-
-    public TaskOutput execute(Map<String, String> argsMap, TaskExecutionContext taskExecutionContext) throws TaskExecutionException {
-        logger.info(EXTENSION_PREFIX + "Starting the Url Pinger Monitoring task");
-        MonitorArgs monitorArgs = new MonitorArgs(argsMap);
+    /**
+     * Entry point into the extension. It unmarshals the xml and creates parallel
+     * task for making http calls and finally outputs the metrics.
+     * @param taskArgs
+     * @param taskExecutionContext
+     * @return
+     * @throws TaskExecutionException
+     */
+    public TaskOutput execute(Map<String, String> taskArgs, TaskExecutionContext taskExecutionContext) throws TaskExecutionException {
+        logger.info(MetricConstants.EXTENSION_PREFIX + "Starting the Url Pinger Monitoring task");
         if(logger.isDebugEnabled()){
-            logger.debug(EXTENSION_PREFIX + monitorArgs.toString());
+            logger.debug(MetricConstants.EXTENSION_PREFIX + "Task Arguments Passed ::" + taskArgs);
         }
-        UrlPingerContext context = new UrlPingerContext(monitorArgs);
         try {
-            MonitorUrls monitorUrls = jaxbProvider.unmarshal(this.getClass().getResource(CONF_MONITOR_FILEPATH).getFile(),MonitorUrls.class);
-            List<Future<UrlPingerMetrics>> parallelTasks = createParallelTasks(context, monitorUrls);
+            UrlPingerContext context = new UrlPingerContext(taskArgs);
+            List<Future<UrlPingerMetrics>> parallelTasks = createParallelTasks(context);
             collectAndPrintMetrics(context, parallelTasks);
-            context.closeHttpClient();
-            logger.info(EXTENSION_PREFIX + "Successfully completed the Url Pinger Monitoring task");
-            return new TaskOutput(EXTENSION_PREFIX + "Url Pinger Metrics Upload completed successfully.");
+            logger.info(MetricConstants.EXTENSION_PREFIX + "Successfully completed the Url Pinger Monitoring task");
+            return new TaskOutput(MetricConstants.EXTENSION_PREFIX + "Url Pinger Metrics Upload completed successfully.");
         } catch (JAXBException e) {
-            logger.error(EXTENSION_PREFIX + "Issue in unmarshalling xml.",e);
+            logger.error(MetricConstants.EXTENSION_PREFIX + "Issue in unmarshalling xml.",e);
         } catch (Exception e) {
-            logger.error(EXTENSION_PREFIX + "Issue in executing the task .",e);
+            logger.error(MetricConstants.EXTENSION_PREFIX + "Issue in executing the task .",e);
         }
-        return new TaskOutput(EXTENSION_PREFIX + "Url Pinger Monitoring task completed with errors");
+        return new TaskOutput(MetricConstants.EXTENSION_PREFIX + "Url Pinger Monitoring task completed with errors");
     }
 
-    private List<Future<UrlPingerMetrics>> createParallelTasks(UrlPingerContext context, MonitorUrls monitorUrls) {
+    /**
+     * Creates parrallel tasks and submits it to threadPool
+     * @param context
+     * @return
+     */
+    private List<Future<UrlPingerMetrics>> createParallelTasks(UrlPingerContext context) {
         List<Future<UrlPingerMetrics>> parallelTasks = new ArrayList<Future<UrlPingerMetrics>>();
+        MonitorUrls monitorUrls = context.getMonitorUrls();
         if(monitorUrls != null && monitorUrls.getMonitorUrls() != null){
             for(MonitorUrl monitorUrl : monitorUrls.getMonitorUrls()){
                 if(monitorUrl.isValid()){
-                    UrlPingerTask pingerTask = new UrlPingerTask(context,monitorUrl);
+                    UrlPingerTask pingerTask = new UrlPingerTask(context.getSimpleHttpClient(),monitorUrl);
                     parallelTasks.add(getThreadPool().submit(pingerTask));
                 }
             }
@@ -80,6 +83,11 @@ public class UrlPingerMonitor extends AManagedMonitor {
         return parallelTasks;
     }
 
+    /**
+     * Get the output from each task and report the metrics
+     * @param context
+     * @param parallelTasks
+     */
     private void collectAndPrintMetrics(UrlPingerContext context, List<Future<UrlPingerMetrics>> parallelTasks)  {
         for(Future<UrlPingerMetrics> aParallelTask : parallelTasks){
             try {
@@ -87,15 +95,21 @@ public class UrlPingerMonitor extends AManagedMonitor {
                 UrlPingerMetrics metrics = aParallelTask.get(20, TimeUnit.SECONDS);
                 printMetrics(context,metrics);
             } catch (InterruptedException e) {
-                logger.error(EXTENSION_PREFIX + "Task interrupted." + e);
+                logger.error(MetricConstants.EXTENSION_PREFIX + "Task interrupted." + e);
             } catch (ExecutionException e) {
-                logger.error(EXTENSION_PREFIX + "Task execution failed." + e.getCause());
+                logger.error(MetricConstants.EXTENSION_PREFIX + "Task execution failed." + e.getCause());
             } catch (TimeoutException e) {
-                logger.error(EXTENSION_PREFIX + "Task timed out." + e.getCause());
+                logger.error(MetricConstants.EXTENSION_PREFIX + "Task timed out." + e.getCause());
             }
         }
     }
 
+
+    /**
+     * Reporting all the metrics for UrlPinger
+     * @param context
+     * @param metrics
+     */
     private void printMetrics(UrlPingerContext context, UrlPingerMetrics metrics) {
 
         printMetric(getCodeMetricName(context, metrics),
@@ -104,36 +118,72 @@ public class UrlPingerMonitor extends AManagedMonitor {
                 MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
                 MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL);
 
-        printMetric(getLastSeenMetricName(context, metrics),
-                metrics.getLastSeen().toString(),
+        printMetric(getResponseTimeMetricName(context, metrics),
+                Long.toString(metrics.getResponseTimeInMs()),
+                MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
+                MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
+                MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL);
+
+        printMetric(getResponseSizeMetricName(context, metrics),
+                Long.toString(metrics.getResponseSizeInBytes()),
                 MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
                 MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
                 MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL);
     }
 
+    /**
+     * A helper method to report the metrics.
+     * @param metricName
+     * @param metricValue
+     * @param aggType
+     * @param timeRollupType
+     * @param clusterRollupType
+     */
     private void printMetric(String metricName,String metricValue,String aggType,String timeRollupType,String clusterRollupType){
         MetricWriter metricWriter = getMetricWriter(metricName,
                 aggType,
                 timeRollupType,
                 clusterRollupType
         );
-      //  System.out.println(EXTENSION_PREFIX + "Sending [" + aggType + MetricConstants.METRIC_SEPARATOR + timeRollupType + MetricConstants.METRIC_SEPARATOR + clusterRollupType
-      //          + "] metric = " + metricName + " = " + metricValue);
+        //System.out.println(MetricConstants.EXTENSION_PREFIX + "Sending [" + aggType + MetricConstants.METRIC_SEPARATOR + timeRollupType + MetricConstants.METRIC_SEPARATOR + clusterRollupType
+        //        + "] metric = " + metricName + " = " + metricValue);
         if (logger.isDebugEnabled()) {
-            logger.debug(EXTENSION_PREFIX + "Sending [" + aggType + MetricConstants.METRIC_SEPARATOR + timeRollupType + MetricConstants.METRIC_SEPARATOR + clusterRollupType
+            logger.debug(MetricConstants.EXTENSION_PREFIX + "Sending [" + aggType + MetricConstants.METRIC_SEPARATOR + timeRollupType + MetricConstants.METRIC_SEPARATOR + clusterRollupType
                     + "] metric = " + metricName + " = " + metricValue);
         }
         metricWriter.printMetric(metricValue);
     }
 
-    private String getLastSeenMetricName(UrlPingerContext context, UrlPingerMetrics metrics) {
-        return context.getMonitorArgs().getMetricPrefix() + metrics.getDisplayName() + MetricConstants.METRIC_SEPARATOR + MetricConstants.LAST_SEEN;
-    }
 
+    /**
+     * Returns the metrics path for Http status code metric.
+     * @param context
+     * @param metrics
+     * @return
+     */
     private String getCodeMetricName(UrlPingerContext context, UrlPingerMetrics metrics) {
-        return context.getMonitorArgs().getMetricPrefix() + metrics.getDisplayName() + MetricConstants.METRIC_SEPARATOR + MetricConstants.CODE;
+        return context.getMetricPrefix() + metrics.getDisplayName() + MetricConstants.METRIC_SEPARATOR + MetricConstants.CODE;
     }
 
+    /**
+     * Reporting response time
+     * @param context
+     * @param metrics
+     * @return
+     */
+    private String getResponseTimeMetricName(UrlPingerContext context, UrlPingerMetrics metrics) {
+        return context.getMetricPrefix() + metrics.getDisplayName() + MetricConstants.METRIC_SEPARATOR + MetricConstants.RESPONSE_TIME;
+    }
+
+    /**
+     * Reporting response size
+     * @param context
+     * @param metrics
+     * @return
+     */
+    private String getResponseSizeMetricName(UrlPingerContext context, UrlPingerMetrics metrics) {
+        return context.getMetricPrefix() + metrics.getDisplayName() + MetricConstants.METRIC_SEPARATOR + MetricConstants.RESPONSE_SIZE_IN_BYTES;
+    }
 
     public ExecutorService getThreadPool() {
         return threadPool;

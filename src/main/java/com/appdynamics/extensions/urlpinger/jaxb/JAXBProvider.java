@@ -7,14 +7,36 @@ import java.io.File;
 
 /**
  *
- * A JAXB Provider that unmarshals xml.
+ * A JAXB Provider to marshal/unmarshals xml.
  */
-public class JAXBProvider<T> {
+public class JAXBProvider {
 
-    public T unmarshal(String filename,Class<T> clazz) throws JAXBException {
-        JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
-        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-        return (T)unmarshaller.unmarshal(new File(filename));
+    protected JAXBContext jaxbContext;
+    protected Unmarshaller unmarshaller;
+
+    public JAXBProvider(Class... clazzes)  {
+        try {
+            jaxbContext = JAXBContext.newInstance(clazzes);
+            if(jaxbContext != null){
+                unmarshaller = jaxbContext.createUnmarshaller();
+            }
+        } catch (JAXBException e) {
+            unmarshaller = null;
+        }
+    }
+
+    /**
+     * Unmarshals the specified file into a java object.
+     * @param filename -
+     * @return Unmarshalled object
+     * @throws JAXBException
+     */
+    public Object unmarshal(String filename) throws JAXBException {
+        System.out.println("JAXB FILENAME ::" + filename);
+        if(unmarshaller != null) {
+            return unmarshaller.unmarshal(new File(filename));
+        }
+        return null;
     }
 
 

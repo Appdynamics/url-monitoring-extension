@@ -1,9 +1,10 @@
 package com.appdynamics.extensions.urlpinger;
 
-import com.appdynamics.extensions.urlpinger.http.SimpleHttpClient;
+import com.appdynamics.extensions.http.Response;
+import com.appdynamics.extensions.http.SimpleHttpClient;
 import com.appdynamics.extensions.urlpinger.jaxb.MonitorUrl;
-import org.apache.http.HttpResponse;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 
 import java.util.Date;
 import java.util.concurrent.Callable;
@@ -14,30 +15,31 @@ import java.util.concurrent.Callable;
 
 public class UrlPingerTask implements Callable<UrlPingerMetrics> {
 
-    private UrlPingerContext context;
+    private SimpleHttpClient httpClient;
     private MonitorUrl data;
 
     public static final Logger logger = Logger.getLogger(UrlPingerTask.class);
 
-    public UrlPingerTask(UrlPingerContext context, MonitorUrl data){
-        this.context = context;
+    public UrlPingerTask(SimpleHttpClient httpClient, MonitorUrl data){
+        this.httpClient = httpClient;
         this.data = data;
     }
 
 
     public UrlPingerMetrics call() throws Exception {
         if(data != null){
-            SimpleHttpClient httpClient = context.getSimpleHttpClient();
             try {
-                HttpResponse response = httpClient.get(data.getUrl());
-                if (response != null && response.getStatusLine() != null) {
-                    return new UrlPingerMetrics(data.getDisplayName(), response.getStatusLine().getStatusCode(), new Date());
+                long startTime = System.currentTimeMillis();
+                Response response = httpClient.target(data.getUrl()).get();
+                long responseTime = System.currentTimeMillis() - startTime;
+                if (response != null) {
+                    return new UrlPingerMetrics(data.getDisplayName(), response.getStatus(),responseTime,response.getContentLength());
                 }
             }catch(Exception e){
                 logger.error("[AppDExt::] Error in executing http request " ,e);
             }
         }
-        return new UrlPingerMetrics(data.getDisplayName(), MetricConstants.DEFAULT_STATUS_CODE,new Date());
+        return new UrlPingerMetrics(data.getDisplayName(), MetricConstants.DEFAULT_STATUS_CODE,-1l,-1l);
     }
 
 }

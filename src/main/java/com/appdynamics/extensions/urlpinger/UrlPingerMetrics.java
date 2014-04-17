@@ -1,5 +1,7 @@
 package com.appdynamics.extensions.urlpinger;
 
+import org.joda.time.DateTime;
+
 import java.util.Date;
 
 /**
@@ -8,24 +10,29 @@ import java.util.Date;
 public class UrlPingerMetrics {
     private String displayName;
     private int statusCode;
-    private Date lastSeen;
+    private long responseTimeInMs;
+    private long responseSizeInBytes;
 
-    public UrlPingerMetrics(String displayName, int statusCode, Date lastSeen) {
+    public UrlPingerMetrics(String displayName, int statusCode,long responseTimeInMs,long responseSizeInBytes) {
         this.displayName = displayName;
         this.statusCode = statusCode;
-        this.lastSeen = lastSeen;
+        this.responseTimeInMs = responseTimeInMs;
+        this.responseSizeInBytes = responseSizeInBytes;
     }
 
     public String getDisplayName() {
         return displayName;
     }
 
-    public Date getLastSeen() {
-        return lastSeen;
-    }
-
     public int getStatusCode() {
         return statusCode;
     }
 
+    public long getResponseTimeInMs() {
+        return responseTimeInMs;
+    }
+
+    public long getResponseSizeInBytes() {
+        return responseSizeInBytes;
+    }
 }
