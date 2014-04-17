@@ -1,9 +1,5 @@
 package com.appdynamics.extensions.urlpinger;
 
-import org.joda.time.DateTime;
-
-import java.util.Date;
-
 /**
  * Metrics for url pinger extension.
  */

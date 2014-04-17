@@ -2,13 +2,11 @@ package com.appdynamics.extensions.urlpinger;
 
 
 import com.appdynamics.extensions.http.SimpleHttpClient;
-import com.appdynamics.extensions.http.SimpleHttpClientBuilder;
 import com.appdynamics.extensions.urlpinger.jaxb.JAXBProvider;
 import com.appdynamics.extensions.urlpinger.jaxb.MonitorUrls;
 import com.google.common.base.Strings;
 
 import javax.xml.bind.JAXBException;
-import java.io.File;
 import java.util.Map;
 
 

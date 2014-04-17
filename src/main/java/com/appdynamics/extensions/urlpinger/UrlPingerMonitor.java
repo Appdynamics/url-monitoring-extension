@@ -10,7 +10,6 @@ import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException
 import org.apache.log4j.Logger;
 
 import javax.xml.bind.JAXBException;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

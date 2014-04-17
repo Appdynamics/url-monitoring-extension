@@ -4,9 +4,7 @@ import com.appdynamics.extensions.http.Response;
 import com.appdynamics.extensions.http.SimpleHttpClient;
 import com.appdynamics.extensions.urlpinger.jaxb.MonitorUrl;
 import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
 
-import java.util.Date;
 import java.util.concurrent.Callable;
 
 /**
