@@ -1,7 +1,7 @@
 url-pinger-monitoring-extension
 ===============================
 
-An AppDynamics extension to be used with a stand alone Java machine agent to ping set of urls and report their status.
+An AppDynamics extension to be used with a stand alone Java machine agent to call set of urls and report their status.
 
 ## Metrics Provided ##
   1. Http status code.
