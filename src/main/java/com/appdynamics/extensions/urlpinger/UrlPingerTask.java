@@ -31,13 +31,13 @@ public class UrlPingerTask implements Callable<UrlPingerMetrics> {
                 Response response = httpClient.target(data.getUrl()).get();
                 long responseTime = System.currentTimeMillis() - startTime;
                 if (response != null) {
-                    return new UrlPingerMetrics(data.getDisplayName(), response.getStatus(),responseTime,response.getContentLength());
+                    return new UrlPingerMetrics(data.getDisplayName(), response.getStatus(),responseTime);
                 }
             }catch(Exception e){
                 logger.error("[AppDExt::] Error in executing http request " ,e);
             }
         }
-        return new UrlPingerMetrics(data.getDisplayName(), MetricConstants.DEFAULT_STATUS_CODE,-1l,-1l);
+        return new UrlPingerMetrics(data.getDisplayName(), MetricConstants.DEFAULT_STATUS_CODE,-1l);
     }
 
 }

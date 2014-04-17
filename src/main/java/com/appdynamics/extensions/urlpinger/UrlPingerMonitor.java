@@ -123,11 +123,6 @@ public class UrlPingerMonitor extends AManagedMonitor {
                 MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
                 MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL);
 
-        printMetric(getResponseSizeMetricName(context, metrics),
-                Long.toString(metrics.getResponseSizeInBytes()),
-                MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
-                MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
-                MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL);
     }
 
     /**
@@ -144,8 +139,8 @@ public class UrlPingerMonitor extends AManagedMonitor {
                 timeRollupType,
                 clusterRollupType
         );
-        //System.out.println(MetricConstants.EXTENSION_PREFIX + "Sending [" + aggType + MetricConstants.METRIC_SEPARATOR + timeRollupType + MetricConstants.METRIC_SEPARATOR + clusterRollupType
-        //        + "] metric = " + metricName + " = " + metricValue);
+        System.out.println(MetricConstants.EXTENSION_PREFIX + "Sending [" + aggType + MetricConstants.METRIC_SEPARATOR + timeRollupType + MetricConstants.METRIC_SEPARATOR + clusterRollupType
+                + "] metric = " + metricName + " = " + metricValue);
         if (logger.isDebugEnabled()) {
             logger.debug(MetricConstants.EXTENSION_PREFIX + "Sending [" + aggType + MetricConstants.METRIC_SEPARATOR + timeRollupType + MetricConstants.METRIC_SEPARATOR + clusterRollupType
                     + "] metric = " + metricName + " = " + metricValue);
@@ -174,15 +169,6 @@ public class UrlPingerMonitor extends AManagedMonitor {
         return context.getMetricPrefix() + metrics.getDisplayName() + MetricConstants.METRIC_SEPARATOR + MetricConstants.RESPONSE_TIME;
     }
 
-    /**
-     * Reporting response size
-     * @param context
-     * @param metrics
-     * @return
-     */
-    private String getResponseSizeMetricName(UrlPingerContext context, UrlPingerMetrics metrics) {
-        return context.getMetricPrefix() + metrics.getDisplayName() + MetricConstants.METRIC_SEPARATOR + MetricConstants.RESPONSE_SIZE_IN_BYTES;
-    }
 
     public ExecutorService getThreadPool() {
         return threadPool;

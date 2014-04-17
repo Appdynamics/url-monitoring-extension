@@ -7,13 +7,11 @@ public class UrlPingerMetrics {
     private String displayName;
     private int statusCode;
     private long responseTimeInMs;
-    private long responseSizeInBytes;
 
-    public UrlPingerMetrics(String displayName, int statusCode,long responseTimeInMs,long responseSizeInBytes) {
+    public UrlPingerMetrics(String displayName, int statusCode,long responseTimeInMs) {
         this.displayName = displayName;
         this.statusCode = statusCode;
         this.responseTimeInMs = responseTimeInMs;
-        this.responseSizeInBytes = responseSizeInBytes;
     }
 
     public String getDisplayName() {
@@ -28,7 +26,4 @@ public class UrlPingerMetrics {
         return responseTimeInMs;
     }
 
-    public long getResponseSizeInBytes() {
-        return responseSizeInBytes;
-    }
 }
