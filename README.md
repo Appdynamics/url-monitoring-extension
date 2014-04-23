@@ -1,4 +1,4 @@
-url-pinger-monitoring-extension
+site-monitoring-extension
 ===============================
 
 An AppDynamics extension to be used with a stand alone Java machine agent to call set of urls and report their status.
@@ -10,59 +10,71 @@ An AppDynamics extension to be used with a stand alone Java machine agent to cal
 
 ## Installation ##
 
-1. Download and unzip UrlPingerMonitor.zip from AppSphere.
-2. Copy the UrlPingerMonitor directory to `<MACHINE_AGENT_HOME>/monitors`.
+1. Download and unzip SiteMonitor.zip from AppSphere.
+2. Copy the SiteMonitor directory to `<MACHINE_AGENT_HOME>/monitors`.
  
 
 ## Configuration ##
-1. To configure the urls to monitor, edit the monitor-urls.xml file in `<MACHINE_AGENT_HOME>/monitors/UrlPingerMonitor/`. Below is the format 
+1. To configure the urls to monitor, edit the site-config.xml file in `<MACHINE_AGENT_HOME>/monitors/SiteMonitor/`. Below is the format
 
   ```
-  <monitor-urls>
-      <monitor-url>
-          <displayName>AppDynamics</displayName>
-          <url>http://www.appdynamics.com</url>
-      </monitor-url>
-      <monitor-url>
-          <displayName>Google</displayName>
-          <url>https://www.google.com</url>
-      </monitor-url>
-      <monitor-url>
-          <displayName>Amazon</displayName>
-          <url>https://www.amazon.com</url>
-      </monitor-url>
-      <monitor-url>
-          <displayName>eBay</displayName>
-          <url>http://www.ebay.com</url>
-      </monitor-url>
-  </monitor-urls>
+<site-config>
+    <sites>
+        <site>
+            <displayName>AppDynamics</displayName>
+            <url>https://www.appdynamics.com</url>
+        </site>
+        <site>
+            <displayName>Google</displayName>
+            <url>https://www.google.com</url>
+        </site>
+        <site>
+            <displayName>Amazon</displayName>
+            <url>https://www.amazon.com</url>
+        </site>
+        <site>
+            <displayName>eBay</displayName>
+            <url>https://www.ebay.com</url>
+        </site>
+        <site>
+            <url>http://facebook.com</url>
+        </site>
+        <site>
+            <displayName>Ning</displayName>
+            <url>http://www.ning.com</url>
+        </site>
+        <site>
+            <displayName>StackOverFlow</displayName>
+            <url>http://www.stackoverflow.com</url>
+        </site>
+    </sites>
+    <connTimeout>10000</connTimeout>
+    <sockTimeout>10000</sockTimeout>
+    <metricPrefix>Custom Metrics|SiteMonitor|</metricPrefix>
+</site-config>
   ```
 
-2. To configure proxy settings,timeouts,metric prefix or the path to the monitor-urls.xml file, edit the <task-arguments> in the monitor.xml file. Below is the sample
+2. To configure proxy settings or the path to the site-config.xml file, edit the <task-arguments> in the monitor.xml file. Below is the sample
 
   ```
   <task-arguments>
       <!-- config file-->
-      <argument name="config-file" is-required="true" default-value="monitors/UrlPingerMonitor/monitor-urls.xml" />
-      
+      <argument name="config-file" is-required="true" default-value="monitors/SiteMonitor/site-config.xml" />
+
       <!-- proxy settings -->
       <argument name="proxy-host" is-required="false" default-value=""/>
       <argument name="proxy-port" is-required="false" default-value=""/>
       <argument name="proxy-username" is-required="false" default-value=""/>
       <argument name="proxy-password" is-required="false" default-value=""/>
       <argument name="proxy-use-ssl" is-required="false" default-value="false"/>
-      
-      <!-- time out settings in ms-->
-      <argument name="conn-timeout" is-required="false" default-value="10000"/>
-      <argument name="sock-timeout" is-required="false" default-value="10000"/>
-      
-      <argument name="metric-prefix" is-required="false" default-value="Custom Metrics|UrlPinger|"/>
+
+      <argument name="log-prefix" is-required="false" default-value="[SiteMonitorAppDExt] " />
   </task-arguments>
    
   ```
 
 ## Custom Dashboard ##
-![](https://github.com/Appdynamics/url-pinger-monitoring-extension/raw/master/url-pinger-dashboard.png)
+![](https://github.com/Appdynamics/site-monitoring-extension/raw/master/site-monitor-dashboard.png)
 
 ## Contributing ##
 
@@ -76,10 +88,10 @@ Find out more in the [Community][].
 
 For any questions or feature request, please contact [AppDynamics Center of Excellence][].
 
-**Version:** 1.0  
+**Version:** 1.0.1
 **Controller Compatibility:** 3.7 or later
 
-[GitHub]: https://github.com/Appdynamics/url-monitoring-extension
+[GitHub]: https://github.com/Appdynamics/site-monitoring-extension
 [Community]: http://community.appdynamics.com/
 [AppDynamics Center of Excellence]: mailto:ace-request@appdynamics.com
 

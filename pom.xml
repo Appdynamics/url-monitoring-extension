@@ -5,12 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.appdynamics.extensions</groupId>
-    <artifactId>url-pinger-monitoring-extension</artifactId>
-    <version>1.0.0</version>
+    <artifactId>site-monitoring-extension</artifactId>
+    <version>1.0.1</version>
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
+        <target.dir>${project.build.directory}/SiteMonitor</target.dir>
     </properties>
 
     <dependencies>
@@ -110,7 +111,7 @@
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Implementation-Title>Url Pinger Monitor v${project.version} Build Date ${maven.build.timestamp}</Implementation-Title>
+                                        <Implementation-Title>Site Monitor v${project.version} Build Date ${maven.build.timestamp}</Implementation-Title>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
@@ -128,17 +129,17 @@
                         <phase>install</phase>
                         <configuration>
                             <target>
-                                <property name="target.dir" value="${build.directory}/UrlPingerMonitor"/>
+                                <property name="target.dir" value="${build.directory}/SiteMonitor"/>
                                 <mkdir dir="${target.dir}"/>
                                 <copy todir="${target.dir}">
                                     <fileset dir="src/main/resources/conf" includes="monitor.xml"/>
-                                    <fileset dir="src/main/resources/conf" includes="monitor-urls.xml"/>
+                                    <fileset dir="src/main/resources/conf" includes="site-config.xml"/>
                                 </copy>
                                 <copy todir="${target.dir}">
                                     <fileset dir="${build.directory}" includes="${project.artifactId}.${project.packaging}"/>
                                 </copy>
                                 <zip destfile="${target.dir}.zip">
-                                    <zipfileset dir="${target.dir}" filemode="755" prefix="UrlPingerMonitor/"/>
+                                    <zipfileset dir="${target.dir}" filemode="755" prefix="SiteMonitor/"/>
                                 </zip>
                                 <delete dir="${target.dir}"/>
                             </target>
@@ -176,7 +177,7 @@
         </repository>
     </repositories>
     <scm>
-        <connection>scm:git:https://github.com/Appdynamics/url-pinger-monitoring-extension.git</connection>
+        <connection>scm:git:https://github.com/Appdynamics/site-monitoring-extension.git</connection>
     </scm>
 
 </project>

@@ -1,46 +1,36 @@
-package com.appdynamics.extensions.urlpinger;
+package com.appdynamics.extensions.sitemonitor;
 
 
-import com.appdynamics.extensions.urlpinger.jaxb.JAXBProvider;
-import com.appdynamics.extensions.urlpinger.jaxb.MonitorUrl;
-import com.appdynamics.extensions.urlpinger.jaxb.MonitorUrls;
 import com.google.common.collect.Maps;
 import com.singularity.ee.agent.systemagent.api.TaskOutput;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
-import javax.xml.bind.JAXBException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-public class UrlPingerMonitorTest {
+public class SiteMonitorTest {
 
+    public static final String CONFIG_ARG = "config-file";
     private static final int NUMBER_OF_THREADS = 3;
     public static final String SAMPLE_HTTP_HOST = "221.10.40.234";
     public static final String SAMPLE_HTTP_PORT = "843";
     public static final String ADMIN = "admin";
     public static final String PROXY_HOST = "proxy-host";
     public static final String PROXY_PORT = "proxy-port";
-    public static final String CONFIG_FILE = "src/test/resources/conf/monitor-urls.xml";
-    // JAXBProvider jaxbProvider = mock(JAXBProvider.class);
-   // MonitorUrls monitorUrls;
+    public static final String CONFIG_FILE = "src/test/resources/conf/site-config.xml";
 
 //    @Before
 //    public void setup() throws JAXBException {
 //        createData();
-//        when(jaxbProvider.unmarshal(anyString())).thenReturn(monitorUrls);
+//        when(jaxbProvider.unmarshal(anyString())).thenReturn(siteConfig);
 //    }
 
 //    private void createData() {
-//        monitorUrls = new MonitorUrls();
+//        siteConfig = new MonitorUrls();
 //        List<MonitorUrl> monitors = new ArrayList<MonitorUrl>();
 //        MonitorUrl m1 = new MonitorUrl();
 //        m1.setDisplayName("Google");
@@ -65,27 +55,39 @@ public class UrlPingerMonitorTest {
 //        MonitorUrl m5 = new MonitorUrl();
 //        m5.setUrl("www.ning.com");
 //        monitors.add(m5);
-//        monitorUrls.setMonitorUrls(monitors);
+//        siteConfig.setMonitorUrls(monitors);
 //    }
 
     @Test
-    public void testUrlPingerExtension() throws TaskExecutionException {
-        UrlPingerMonitor pingerMonitor = new UrlPingerMonitor(Executors.newFixedThreadPool(NUMBER_OF_THREADS));
+    public void testSiteMonitorExtension() throws TaskExecutionException {
+        SiteMonitor siteMonitor = new SiteMonitor(Executors.newFixedThreadPool(NUMBER_OF_THREADS));
         Map<String,String> taskArgs = Maps.newHashMap();
-        taskArgs.put(UrlPingerContext.CONFIG_FILE, CONFIG_FILE);
-        TaskOutput output = pingerMonitor.execute(taskArgs, null);
+        taskArgs.put(CONFIG_ARG, CONFIG_FILE);
+        TaskOutput output = siteMonitor.execute(taskArgs, null);
         Assert.assertTrue(output.getStatusMessage().contains("successfully"));
     }
 
     @Test
-    public void testUrlPingerExtensionWithHttpProxy() throws TaskExecutionException {
-        UrlPingerMonitor pingerMonitor = new UrlPingerMonitor(Executors.newFixedThreadPool(NUMBER_OF_THREADS));
+    public void testSiteMonitorExtensionWithHttpProxy() throws TaskExecutionException {
+        SiteMonitor siteMonitor = new SiteMonitor(Executors.newFixedThreadPool(NUMBER_OF_THREADS));
         Map<String,String> taskArgs = Maps.newHashMap();
         taskArgs.put(PROXY_HOST, SAMPLE_HTTP_HOST);
         taskArgs.put(PROXY_PORT, SAMPLE_HTTP_PORT);
-        taskArgs.put(UrlPingerContext.CONFIG_FILE,CONFIG_FILE);
-        TaskOutput output = pingerMonitor.execute(taskArgs, null);
+        taskArgs.put(CONFIG_ARG,CONFIG_FILE);
+        TaskOutput output = siteMonitor.execute(taskArgs, null);
         Assert.assertTrue(output.getStatusMessage().contains("successfully"));
     }
 
+    @Test(expected = TaskExecutionException.class)
+    public void shouldThrowExceptionWhenNoConfig() throws TaskExecutionException {
+        SiteMonitor siteMonitor = new SiteMonitor(Executors.newFixedThreadPool(NUMBER_OF_THREADS));
+        Map<String,String> taskArgs = Maps.newHashMap();
+        TaskOutput output = siteMonitor.execute(taskArgs, null);
+    }
+
+    @Test(expected = TaskExecutionException.class)
+    public void shouldThrowExceptionWhenTaskArgsIsNull() throws TaskExecutionException {
+        SiteMonitor siteMonitor = new SiteMonitor(Executors.newFixedThreadPool(NUMBER_OF_THREADS));
+        TaskOutput output = siteMonitor.execute(null, null);
+    }
 }

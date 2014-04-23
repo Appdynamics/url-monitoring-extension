@@ -1,0 +1,34 @@
+<site-config>
+    <sites>
+        <site>
+            <displayName>AppDynamics</displayName>
+            <url>https://www.appdynamics.com</url>
+        </site>
+        <site>
+            <displayName>Google</displayName>
+            <url>https://www.google.com</url>
+        </site>
+        <site>
+            <displayName>Amazon</displayName>
+            <url>https://www.amazon.com</url>
+        </site>
+        <site>
+            <displayName>eBay</displayName>
+            <url>https://www.ebay.com</url>
+        </site>
+        <site>
+            <url>http://facebook.com</url>
+        </site>
+        <site>
+            <displayName>Ning</displayName>
+            <url>http://www.ning.com</url>
+        </site>
+        <site>
+            <displayName>StackOverFlow</displayName>
+            <url>http://www.stackoverflow.com</url>
+        </site>
+    </sites>
+    <connTimeout>10000</connTimeout>
+    <sockTimeout>10000</sockTimeout>
+    <metricPrefix>Custom Metrics|SiteMonitor|</metricPrefix>
+</site-config>

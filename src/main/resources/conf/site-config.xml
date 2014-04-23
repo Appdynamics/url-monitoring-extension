@@ -1,0 +1,23 @@
+<site-config>
+    <sites>
+        <site>
+            <displayName>AppDynamics</displayName>
+            <url>http://www.appdynamics.com</url>
+        </site>
+        <site>
+            <displayName>Google</displayName>
+            <url>https://www.google.com</url>
+        </site>
+        <site>
+            <displayName>Amazon</displayName>
+            <url>https://www.amazon.com</url>
+        </site>
+        <site>
+            <displayName>eBay</displayName>
+            <url>http://www.ebay.com</url>
+        </site>
+    </sites>
+    <connTimeout>10000</connTimeout>
+    <sockTimeout>10000</sockTimeout>
+    <metricPrefix>Custom Metrics|SiteMonitor|</metricPrefix>
+</site-config>

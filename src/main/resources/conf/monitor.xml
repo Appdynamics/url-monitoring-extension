@@ -1,19 +1,19 @@
 <monitor>
-    <name>url-pinger-monitor</name>
+    <name>site-monitor</name>
     <type>managed</type>
-    <description>Url Pinger Monitoring Extension</description>
+    <description>Site Monitoring Extension</description>
     <monitor-configuration></monitor-configuration>
     <monitor-run-task>
         <execution-style>periodic</execution-style>
         <execution-frequency-in-seconds>60</execution-frequency-in-seconds>
-        <name>Url Pinger Monitor Run task</name>
-        <display-name>Url Pinger Monitor Run task</display-name>
-        <description>An extension to get health checks for urls.</description>
+        <name>Site Monitor Run task</name>
+        <display-name>Site Monitor Run task</display-name>
+        <description>An extension to monitor site urls.</description>
         <type>java</type>
         <execution-timeout-in-secs>60</execution-timeout-in-secs>
         <task-arguments>
             <!-- config file-->
-            <argument name="config-file" is-required="true" default-value="monitors/UrlPingerMonitor/monitor-urls.xml" />
+            <argument name="config-file" is-required="true" default-value="monitors/SiteMonitor/site-config.xml" />
 
             <!-- proxy settings -->
             <argument name="proxy-host" is-required="false" default-value=""/>
@@ -22,15 +22,11 @@
             <argument name="proxy-password" is-required="false" default-value=""/>
             <argument name="proxy-use-ssl" is-required="false" default-value="false"/>
 
-            <!-- time out settings in ms-->
-            <argument name="conn-timeout" is-required="false" default-value="10000"/>
-            <argument name="sock-timeout" is-required="false" default-value="10000"/>
-
-            <argument name="metric-prefix" is-required="false" default-value="Custom Metrics|UrlPinger|"/>
+            <argument name="log-prefix" is-required="false" default-value="[SiteMonitorAppDExt] " />
         </task-arguments>
         <java-task>
-            <classpath>url-pinger-monitoring-extension.jar</classpath>
-            <impl-class>com.appdynamics.extensions.urlpinger.UrlPingerMonitor</impl-class>
+            <classpath>site-monitoring-extension.jar</classpath>
+            <impl-class>com.appdynamics.extensions.sitemonitor.SiteMonitor</impl-class>
         </java-task>
     </monitor-run-task>
 </monitor>
