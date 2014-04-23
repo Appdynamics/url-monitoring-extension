@@ -22,7 +22,7 @@ An AppDynamics extension to be used with a stand alone Java machine agent to cal
     <sites>
         <site>
             <displayName>AppDynamics</displayName>
-            <url>https://www.appdynamics.com</url>
+            <url>http://www.appdynamics.com</url>
         </site>
         <site>
             <displayName>Google</displayName>
@@ -34,18 +34,7 @@ An AppDynamics extension to be used with a stand alone Java machine agent to cal
         </site>
         <site>
             <displayName>eBay</displayName>
-            <url>https://www.ebay.com</url>
-        </site>
-        <site>
-            <url>http://facebook.com</url>
-        </site>
-        <site>
-            <displayName>Ning</displayName>
-            <url>http://www.ning.com</url>
-        </site>
-        <site>
-            <displayName>StackOverFlow</displayName>
-            <url>http://www.stackoverflow.com</url>
+            <url>http://www.ebay.com</url>
         </site>
     </sites>
     <connTimeout>10000</connTimeout>
