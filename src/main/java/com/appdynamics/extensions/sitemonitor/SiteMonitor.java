@@ -76,10 +76,6 @@ public class SiteMonitor extends AManagedMonitor {
                 logger.error(MetricConstants.EXTENSION_PREFIX + "Issue in unmarshalling xml.", e);
             } catch (Exception e) {
                 logger.error(MetricConstants.EXTENSION_PREFIX + "Issue in executing the task .", e);
-            } finally {
-                if(!threadPool.isShutdown()){
-                    threadPool.shutdown();
-                }
             }
         }
         throw new TaskExecutionException(MetricConstants.EXTENSION_PREFIX + "SiteMonitor completed with errors");
@@ -90,7 +86,7 @@ public class SiteMonitor extends AManagedMonitor {
      * @param context
      * @return
      */
-    private List<Future<SiteMonitorMetrics>> createParallelTasks(SiteMonitorContext context) {
+    private List<Future<SiteMonitorMetrics>>    createParallelTasks(SiteMonitorContext context) {
         List<Future<SiteMonitorMetrics>> parallelTasks = new ArrayList<Future<SiteMonitorMetrics>>();
         SiteConfig siteConfig = context.getSiteConfig();
         if(siteConfig != null && siteConfig.getSites() != null){
