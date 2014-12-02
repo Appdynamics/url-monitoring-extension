@@ -1,0 +1,27 @@
+clientConfig:
+    maxConnTotal:    1000
+    maxConnPerRoute: 1000
+    ignoreSslErrors: true
+
+defaultParams:
+    method:          GET
+    socketTimeout:   30000
+    connectTimeout:  30000
+    numAttempts:     3
+
+sites:
+
+- name:     Google
+  url:      http://www.google.com
+
+- name:     AppDynamics
+  url:      https://www.appdynamics.com
+
+- name:     Help
+  url:      https://help.appdynamics.com
+
+- name:     My Controller
+  url:      https://localhost:8080/controller/rest/applications
+  username: user1@customer1
+  password: welcome
+  connectTimeout: 60000

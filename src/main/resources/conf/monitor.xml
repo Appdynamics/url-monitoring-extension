@@ -1,32 +1,23 @@
-<monitor>
-    <name>site-monitor</name>
-    <type>managed</type>
-    <description>Site Monitoring Extension</description>
-    <monitor-configuration></monitor-configuration>
-    <monitor-run-task>
-        <execution-style>periodic</execution-style>
-        <execution-frequency-in-seconds>60</execution-frequency-in-seconds>
-        <name>Site Monitor Run task</name>
-        <display-name>Site Monitor Run task</display-name>
-        <description>An extension to monitor site urls.</description>
-        <type>java</type>
-        <execution-timeout-in-secs>60</execution-timeout-in-secs>
-        <task-arguments>
-            <!-- config file-->
-            <argument name="config-file" is-required="true" default-value="monitors/SiteMonitor/site-config.xml" />
-
-            <!-- proxy settings -->
-            <argument name="proxy-host" is-required="false" default-value=""/>
-            <argument name="proxy-port" is-required="false" default-value=""/>
-            <argument name="proxy-username" is-required="false" default-value=""/>
-            <argument name="proxy-password" is-required="false" default-value=""/>
-            <argument name="proxy-use-ssl" is-required="false" default-value="false"/>
-
-            <argument name="log-prefix" is-required="false" default-value="[SiteMonitorAppDExt] " />
-        </task-arguments>
-        <java-task>
-            <classpath>site-monitoring-extension.jar</classpath>
-            <impl-class>com.appdynamics.extensions.sitemonitor.SiteMonitor</impl-class>
-        </java-task>
-    </monitor-run-task>
+    <monitor>
+        <name>UrlMonitor</name>
+        <type>managed</type>
+        <description>Url monitor</description>
+        <monitor-configuration></monitor-configuration>
+        <monitor-run-task>
+                <execution-style>periodic</execution-style>
+                <execution-frequency-in-seconds>60</execution-frequency-in-seconds>
+                <name>Url Monitor Run Task</name>
+                <display-name>Url Monitor Task</display-name>
+                <description>Url Monitor Task</description>
+                <type>java</type>
+                <execution-timeout-in-secs>60</execution-timeout-in-secs>
+                <task-arguments>
+                    <!-- config file-->
+                    <argument name="config-file" is-required="true" default-value="monitors/UrlMonitor/config.yml" />
+                </task-arguments>
+                <java-task>
+                        <classpath>url-monitoring-extension.jar</classpath>
+                        <impl-class>com.appdynamics.extensions.urlmonitor.ThreadedUrlMonitor</impl-class>
+                </java-task>
+        </monitor-run-task>
 </monitor>
