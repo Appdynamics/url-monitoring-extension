@@ -7,8 +7,7 @@ public class DefaultSiteConfig extends SiteConfigBase {
         method = "HEAD";
         socketTimeout = 30000;
         connectTimeout = 30000;
-        redirectsAllowed = true;
-        maxRedirects = 10;
+        treatAuthFailedAsError = true;
         numAttempts = 1;
     }
 }

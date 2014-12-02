@@ -5,8 +5,7 @@ public class SiteConfigBase
     String method;
     int socketTimeout = -1;
     int connectTimeout = -1;
-    boolean redirectsAllowed = true;
-    int maxRedirects = -1;
+    Boolean treatAuthFailedAsError;
     int numAttempts = -1;
 
     public String getMethod()
@@ -39,26 +38,6 @@ public class SiteConfigBase
         this.connectTimeout = connectTimeout;
     }
 
-    public boolean isRedirectsAllowed()
-    {
-        return redirectsAllowed;
-    }
-
-    public void setRedirectsAllowed(boolean redirectsAllowed)
-    {
-        this.redirectsAllowed = redirectsAllowed;
-    }
-
-    public int getMaxRedirects()
-    {
-        return maxRedirects;
-    }
-
-    public void setMaxRedirects(int maxRedirects)
-    {
-        this.maxRedirects = maxRedirects;
-    }
-
     public int getNumAttempts()
     {
         return numAttempts;
@@ -69,14 +48,22 @@ public class SiteConfigBase
         this.numAttempts = numAttempts;
     }
 
+    public Boolean isTreatAuthFailedAsError()
+    {
+        return treatAuthFailedAsError;
+    }
+
+    public void setTreatAuthFailedAsError(Boolean treatAuthFailedAsError)
+    {
+        this.treatAuthFailedAsError = treatAuthFailedAsError;
+    }
+
     @Override
     public String toString()
     {
         return "method='" + method + '\'' +
-               ", socketTimeout=" + socketTimeout +
-               ", connectTimeout=" + connectTimeout +
-               ", redirectsAllowed=" + redirectsAllowed +
-               ", maxRedirects=" + maxRedirects +
-               ", numAttempts=" + numAttempts;
+                ", socketTimeout=" + socketTimeout +
+                ", connectTimeout=" + connectTimeout +
+                ", numAttempts=" + numAttempts;
     }
 }

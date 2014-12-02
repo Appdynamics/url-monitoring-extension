@@ -9,7 +9,6 @@ public class SiteConfig extends SiteConfigBase
     private String url;
     private String username;
     private String password;
-    private boolean followRedirects;
     private Map<String, String> headers = new HashMap<String, String>();
 
     public String getName()
@@ -62,16 +61,6 @@ public class SiteConfig extends SiteConfigBase
         this.password = password;
     }
 
-    public boolean shouldFollowRedirects()
-    {
-        return followRedirects;
-    }
-
-    public void setFollowRedirects(boolean followRedirects)
-    {
-        this.followRedirects = followRedirects;
-    }
-
     @Override
     public String toString()
     {
@@ -80,3 +69,4 @@ public class SiteConfig extends SiteConfigBase
                 '}';
     }
 }
+

@@ -6,6 +6,8 @@ public class ClientConfig
     private int maxConnPerRoute = 1000;
     private int threadCount = 10;
     private boolean ignoreSslErrors = false;
+    private boolean followRedirects = true;
+    private int maxRedirects = 10;
 
     public int getThreadCount()
     {
@@ -47,11 +49,31 @@ public class ClientConfig
         this.ignoreSslErrors = ignoreSslErrors;
     }
 
+    public boolean isFollowRedirects()
+    {
+        return followRedirects;
+    }
+
+    public void setFollowRedirects(boolean followRedirects)
+    {
+        this.followRedirects = followRedirects;
+    }
+
+    public int getMaxRedirects()
+    {
+        return maxRedirects;
+    }
+
+    public void setMaxRedirects(int maxRedirects)
+    {
+        this.maxRedirects = maxRedirects;
+    }
+
     @Override
     public String toString()
     {
         return "maxConnTotal=" + maxConnTotal +
-               ", maxConnPerRoute=" + maxConnPerRoute +
-               ", ignoreSslErrors=" + ignoreSslErrors;
+                ", maxConnPerRoute=" + maxConnPerRoute +
+                ", ignoreSslErrors=" + ignoreSslErrors;
     }
 }

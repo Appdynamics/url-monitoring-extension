@@ -34,51 +34,16 @@ public class ThreadedUrlMonitor extends AManagedMonitor
         DefaultSiteConfig defaultSiteConfig = config.getDefaultParams();
         ClientConfig clientConfig = config.getClientConfig();
 
-//        TrustManager[] trustAllCerts = new TrustManager[]{
-//                new X509TrustManager() {
-//                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-//                        return null;
-//                    }
-//                    public void checkClientTrusted(
-//                            java.security.cert.X509Certificate[] certs, String authType) {
-//                    }
-//                    public void checkServerTrusted(
-//                            java.security.cert.X509Certificate[] certs, String authType) {
-//                    }
-//                }
-//        };
-//
-//        SSLContext sc = null;
-//        try
-//        {
-//            sc = SSLContext.getInstance("SSL");
-//            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-//        }
-//        catch (Exception e)
-//        {
-//            log.error("Error creating SSL context: " + e.getMessage(), e);
-//        }
-
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
 
-        builder.setFollowRedirects(true)
-                .setAllowSslConnectionPool(false)
-//                .setSSLContext(sc)
-//                .setHostnameVerifier(new HostnameVerifier()
-//                {
-////                    @Override
-//                    public boolean verify(String s, SSLSession sslSession)
-//                    {
-//                        return true;
-//                    }
-//                })
-               .setConnectionTimeoutInMs(defaultSiteConfig.getConnectTimeout())
-               .setRequestTimeoutInMs(defaultSiteConfig.getSocketTimeout())
-               .setMaximumConnectionsPerHost(clientConfig.getMaxConnPerRoute())
-               .setMaximumConnectionsTotal(clientConfig.getMaxConnTotal());
+        builder.setFollowRedirects(clientConfig.isFollowRedirects())
+                .setMaximumNumberOfRedirects(clientConfig.getMaxRedirects())
+                .setConnectionTimeoutInMs(defaultSiteConfig.getConnectTimeout())
+                .setRequestTimeoutInMs(defaultSiteConfig.getSocketTimeout())
+                .setMaximumConnectionsPerHost(clientConfig.getMaxConnPerRoute())
+                .setMaximumConnectionsTotal(clientConfig.getMaxConnTotal());
 
-        AsyncHttpClient x = new AsyncHttpClient(builder.build());
-        return x;
+        return new AsyncHttpClient(builder.build());
     }
 
     public MonitorConfig readConfigFile(String filename)
@@ -97,11 +62,36 @@ public class ThreadedUrlMonitor extends AManagedMonitor
         }
 
         Yaml yaml = new Yaml(new Constructor(MonitorConfig.class));
-        MonitorConfig c = (MonitorConfig) yaml.load(configReader);
-        return c;
+        return (MonitorConfig) yaml.load(configReader);
     }
 
-//    @Override
+    protected void setSiteDefaults()
+    {
+        DefaultSiteConfig defaults = config.getDefaultParams();
+
+        for (final SiteConfig site : config.getSites())
+        {
+            if (site.isTreatAuthFailedAsError() == null)
+                site.setTreatAuthFailedAsError(defaults.isTreatAuthFailedAsError());
+            if (site.getNumAttempts() == -1)
+                site.setNumAttempts(defaults.getNumAttempts());
+            if (Strings.isNullOrEmpty(site.getMethod()))
+                site.setMethod(defaults.getMethod());
+        }
+    }
+
+    protected final ConcurrentHashMap<SiteConfig, List<SiteResult>> buildResultMap()
+    {
+        final ConcurrentHashMap<SiteConfig, List<SiteResult>> results = new ConcurrentHashMap<SiteConfig, List<SiteResult>>();
+        for (final SiteConfig site : config.getSites())
+        {
+            results.put(site, Collections.synchronizedList(new ArrayList<SiteResult>()));
+        }
+
+        return results;
+    }
+
+    //    @Override
     public TaskOutput execute(Map<String, String> taskParams, TaskExecutionContext taskContext)
             throws TaskExecutionException
     {
@@ -119,12 +109,8 @@ public class ThreadedUrlMonitor extends AManagedMonitor
         log.info(String.format("Sending %d HTTP requests asynchronously to %d sites",
                 latch.getCount(), config.getSites().length));
 
-        final ConcurrentHashMap<SiteConfig, List<SiteResult>> results = new ConcurrentHashMap<SiteConfig, List<SiteResult>>();
-        for (final SiteConfig site : config.getSites())
-        {
-            results.put(site, Collections.synchronizedList(new ArrayList<SiteResult>()));
-        }
-
+        setSiteDefaults();
+        final ConcurrentHashMap<SiteConfig, List<SiteResult>> results = buildResultMap();
         final long overallStartTime = System.currentTimeMillis();
         final AsyncHttpClient client = createHttpClient(config);
 
@@ -132,41 +118,36 @@ public class ThreadedUrlMonitor extends AManagedMonitor
         {
             for (final SiteConfig site : config.getSites())
             {
-                int numAttempts = site.getNumAttempts();
-                if (numAttempts == -1)
-                    numAttempts = config.getDefaultParams()
-                                        .getNumAttempts();
-
-                for (int i = 0; i < numAttempts; i++)
+                for (int i = 0; i < site.getNumAttempts(); i++)
                 {
-                    final String method = Strings.isNullOrEmpty(site.getMethod()) ?
-                            config.getDefaultParams().getMethod() : site.getMethod();
-
-                    RequestBuilder rb = new RequestBuilder(method).setUrl(site.getUrl());
-
-                    rb.setRealm(new Realm.RealmBuilder()
-                            .setScheme(Realm.AuthScheme.BASIC)
-                            .setPrincipal(site.getUsername())
-                            .setPassword(site.getPassword())
-                            .build());
+                    RequestBuilder rb = new RequestBuilder()
+                            .setMethod(site.getMethod())
+                            .setUrl(site.getUrl())
+                            .setFollowRedirects(config.getClientConfig().isFollowRedirects())
+                            .setRealm(new Realm.RealmBuilder()
+                                    .setScheme(Realm.AuthScheme.BASIC)
+                                    .setPrincipal(site.getUsername())
+                                    .setPassword(site.getPassword())
+                                    .build());
 
                     for (Map.Entry<String, String> header : site.getHeaders().entrySet())
                     {
                         rb.addHeader(header.getKey(), header.getValue());
                     }
 
-                    log.info(String.format("Sending %s request %d of %d to %s at %s", method, (i + 1), numAttempts,
-                            site.getName(), site.getUrl()));
+                    log.info(String.format("Sending %s request %d of %d to %s at %s",
+                            site.getMethod(), (i + 1),
+                            site.getNumAttempts(), site.getName(), site.getUrl()));
 
                     final long startTime = System.currentTimeMillis();
-
                     final Request r = rb.build();
+
                     client.executeRequest(r, new AsyncCompletionHandler<Response>()
                     {
                         private void finish(SiteResult result)
                         {
                             results.get(site)
-                                   .add(result);
+                                    .add(result);
                             latch.countDown();
                             log.info(latch.getCount() + " requests remaining");
                         }
@@ -182,15 +163,32 @@ public class ThreadedUrlMonitor extends AManagedMonitor
 
                             if (statusCode == 200)
                             {
-                                log.info(String.format("%s %s -> %s", method, site.getUrl(), response.getStatusText()));
+                                log.info(String.format("%s %s -> %d %s",
+                                        site.getMethod(),
+                                        site.getUrl(),
+                                        response.getStatusCode(),
+                                        response.getStatusText()));
+                            }
+                            else if (statusCode == 401 && !site.isTreatAuthFailedAsError())
+                            {
+                                log.info(String.format("%s %s -> %d %s [but OK]",
+                                        site.getMethod(),
+                                        site.getUrl(),
+                                        response.getStatusCode(),
+                                        response.getStatusText()));
                             }
                             else
                             {
-                                log.warn(String.format("%s %s -> %s", method, site.getUrl(), response.getStatusText()));
+                                log.warn(String.format("%s %s -> %d %s",
+                                        site.getMethod(),
+                                        site.getUrl(),
+                                        response.getStatusCode(),
+                                        response.getStatusText()));
                                 status = SiteResult.ResultStatus.ERROR;
                             }
 
-                            finish(new SiteResult(elapsedTime, status, statusCode, response.getResponseBodyAsBytes().length));
+                            finish(new SiteResult(elapsedTime, status, statusCode,
+                                    response.getResponseBodyAsBytes().length));
                             return response;
                         }
 
@@ -217,7 +215,8 @@ public class ThreadedUrlMonitor extends AManagedMonitor
                 int statusCode = 0;
                 long responseSize = 0;
                 SiteResult.ResultStatus status = SiteResult.ResultStatus.UNKNOWN;
-                for (SiteResult result : results.get(site)) {
+                for (SiteResult result : results.get(site))
+                {
                     status = result.getStatus();
                     statusCode = result.getResponseCode();
                     responseSize = result.getResponseBytes();
@@ -226,7 +225,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor
 
                 long averageTime = totalTime / resultCount;
 
-                log.info(String.format("Results for %s were: count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
+                log.info(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
                         site.getName(), resultCount, totalTime, averageTime, statusCode, responseSize, status));
 
                 getMetricWriter(metricPath + "|Average Response Time (ms)",
