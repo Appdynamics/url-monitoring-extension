@@ -108,7 +108,7 @@ For any questions or feature request, please contact [AppDynamics Center of Exce
 
 
 ## Custom Dashboard ##
-![](https://github.com/Appdynamics/site-monitoring-extension/raw/master/site-monitor-dashboard.png)
+![](https://github.com/Appdynamics/site-monitoring-extension/raw/master/url-monitor-dashboard.png)
 
 ## Contributing ##
 
