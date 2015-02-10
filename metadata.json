@@ -1,0 +1,36 @@
+{
+	"id" : "url-monitoring-extension",
+	"type" : "monitor",
+	"displayName" : "Url Monitor Extension",
+	"description" : "An AppDynamics Machine Agent extension to visit a set of URLs and report whether they are up or down.",
+	"version" : "1.0.5",
+	"downloadLink" : "https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.5/UrlMonitor.zip",
+	"imageLink" : "https://no-cache.appdynamics-static.com/appsphere/logos/urlpinger_128.png",
+	"defaultConfigs" : [
+		{
+			"name" : "monitor.xml",
+			"link" : "https://raw.githubusercontent.com/CassandraAppDExtdynamics/cassandra-monitoring-extension/master/src/main/resources/conf/monitor.xml",
+			"args" : [
+				{
+					"name" : "execution-frequency-in-seconds",
+					"displayName" : "Execution Frequency",
+					"defaultValue" : "60",
+					"description" : "Determines the execution frequency in seconds.",
+					"required" : true
+				},
+				{
+					"name" : "execution-timeout-in-secs",
+					"displayName" : "Execution Timeout",
+					"defaultValue" : "60",
+					"description" : "Determines the execution timeout in seconds.",
+					"required" : true
+				}
+			]
+		},
+		{
+			"name" : "config.yaml",
+			"link" : "https://raw.githubusercontent.com/Appdynamics/url-monitoring-extension/master/src/main/resources/conf/config.yaml"
+		}
+	]
+
+}
