@@ -9,7 +9,7 @@
 	"defaultConfigs" : [
 		{
 			"name" : "monitor.xml",
-			"link" : "https://raw.githubusercontent.com/CassandraAppDExtdynamics/cassandra-monitoring-extension/master/src/main/resources/conf/monitor.xml",
+			"link" : "https://raw.githubusercontent.com/Appdynamics/url-monitoring-extension/master/src/main/resources/conf/monitor.xml",
 			"args" : [
 				{
 					"name" : "execution-frequency-in-seconds",
@@ -28,8 +28,8 @@
 			]
 		},
 		{
-			"name" : "config.yaml",
-			"link" : "https://raw.githubusercontent.com/Appdynamics/url-monitoring-extension/master/src/main/resources/conf/config.yaml"
+			"name" : "config.yml",
+			"link" : "https://raw.githubusercontent.com/Appdynamics/url-monitoring-extension/master/src/main/resources/conf/config.yml"
 		}
 	]
 

@@ -25,7 +25,7 @@ import java.util.concurrent.CountDownLatch;
 public class ThreadedUrlMonitor extends AManagedMonitor
 {
     private static final Logger log = Logger.getLogger(ThreadedUrlMonitor.class);
-    private static final String DEFAULT_CONFIG_FILE = "config.yaml";
+    private static final String DEFAULT_CONFIG_FILE = "config.yml";
     private static final String CONFIG_FILE_PARAM = "config-file";
     protected MonitorConfig config;
 
@@ -280,7 +280,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor
             throws Exception
     {
         Map<String, String> taskParams = new HashMap<String, String>();
-        taskParams.put(CONFIG_FILE_PARAM, "config.yaml");
+        taskParams.put(CONFIG_FILE_PARAM, "config.yml");
 
         ThreadedUrlMonitor monitor = new ThreadedUrlMonitor();
         monitor.execute(taskParams, null);
