@@ -9,6 +9,7 @@ defaultParams:
     connectTimeout:  30000
     numAttempts:     3
 
+#Sites that need to be monitored
 sites:
 
 - name:     Google
