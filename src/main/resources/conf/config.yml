@@ -2,6 +2,7 @@ clientConfig:
     maxConnTotal:    1000
     maxConnPerRoute: 1000
     ignoreSslErrors: true
+    userAgent:       Mozilla/5.0 AppDynamics-UrlMonitor/1.0.6
 
 defaultParams:
     method:          GET
@@ -14,6 +15,8 @@ sites:
 
 - name:     Google
   url:      http://www.google.com
+  expect:
+  - substring: Mail
 
 - name:     AppDynamics
   url:      https://www.appdynamics.com

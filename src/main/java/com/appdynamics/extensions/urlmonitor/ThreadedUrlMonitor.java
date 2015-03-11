@@ -41,7 +41,8 @@ public class ThreadedUrlMonitor extends AManagedMonitor
                 .setConnectionTimeoutInMs(defaultSiteConfig.getConnectTimeout())
                 .setRequestTimeoutInMs(defaultSiteConfig.getSocketTimeout())
                 .setMaximumConnectionsPerHost(clientConfig.getMaxConnPerRoute())
-                .setMaximumConnectionsTotal(clientConfig.getMaxConnTotal());
+                .setMaximumConnectionsTotal(clientConfig.getMaxConnTotal())
+                .setUserAgent(clientConfig.getUserAgent());
 
         return new AsyncHttpClient(builder.build());
     }
