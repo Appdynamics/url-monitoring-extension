@@ -8,24 +8,28 @@ defaultParams:
     method:          GET
     socketTimeout:   30000
     connectTimeout:  30000
-    numAttempts:     3
+    numAttempts:     1
 
 #Sites that need to be monitored
+
 sites:
 
-- name:     Google
-  url:      http://www.google.com
-  expect:
-  - substring: Mail
+  - name:     Google
+    url:      http://www.google.com
+    matchPatterns:
+    - name: LuckyButton
+      type: caseInsensitiveSubstring
+      pattern: I'm Feeling Lucky
 
-- name:     AppDynamics
-  url:      https://www.appdynamics.com
+  - name:     AppDynamics
+    url:      http://www.appdynamics.com
 
-- name:     Help
-  url:      https://help.appdynamics.com
+  - name:     File Download
+    url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
 
-- name:     My Controller
-  url:      https://localhost:8080/controller/rest/applications
-  username: user1@customer1
-  password: welcome
-  connectTimeout: 60000
+  - name:     My Controller
+    url:      http://localhost:8090/controller/rest/applications
+    username: user1@customer1
+    password: welcome
+    connectTimeout: 60000
+

@@ -1,5 +1,6 @@
 package com.appdynamics.extensions.urlmonitor.config;
 
+@SuppressWarnings("unused")
 public class MonitorConfig
 {
     private ClientConfig clientConfig;

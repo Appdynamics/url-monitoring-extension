@@ -1,5 +1,6 @@
 package com.appdynamics.extensions.urlmonitor.config;
 
+@SuppressWarnings("unused")
 public class ClientConfig
 {
     private int maxConnTotal = 1000;
@@ -8,7 +9,7 @@ public class ClientConfig
     private boolean ignoreSslErrors = false;
     private boolean followRedirects = true;
     private int maxRedirects = 10;
-    private String userAgent = "Mozilla/5.0 AppDynamics-UrlMonitor/1.0.6";
+    private String userAgent = "Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/)";
 
     public int getThreadCount()
     {

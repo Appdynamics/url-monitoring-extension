@@ -1,8 +1,11 @@
 package com.appdynamics.extensions.urlmonitor.config;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public class SiteConfig extends SiteConfigBase
 {
     private String name;
@@ -10,6 +13,7 @@ public class SiteConfig extends SiteConfigBase
     private String username;
     private String password;
     private Map<String, String> headers = new HashMap<String, String>();
+    private List<MatchPattern> matchPatterns = new ArrayList<MatchPattern>();
 
     public String getName()
     {
@@ -59,6 +63,14 @@ public class SiteConfig extends SiteConfigBase
     public void setPassword(String password)
     {
         this.password = password;
+    }
+
+    public List<MatchPattern> getMatchPatterns() {
+        return matchPatterns;
+    }
+
+    public void setMatchPatterns(List<MatchPattern> matchPatterns) {
+        this.matchPatterns = matchPatterns;
     }
 
     @Override

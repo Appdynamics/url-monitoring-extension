@@ -1,11 +1,13 @@
-target
-*.iml
+build/
+test/
+target/
 .settings
 .classpath
 .project
+*.iml
 *.log
 *.ipr
 *.iws
-.idea
+.idea/
 .DS_Store
 
