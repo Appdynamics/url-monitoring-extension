@@ -25,6 +25,9 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
     private static final Logger log = Logger.getLogger(ThreadedUrlMonitor.class);
     private static final String DEFAULT_CONFIG_FILE = "config.yml";
     private static final String CONFIG_FILE_PARAM = "config-file";
+    private static final String METRIC_PATH_PARAM = "metric-path";
+    private static final String DEFAULT_METRIC_PATH = "Custom Metrics|URL Monitor";
+    private String metricPath = DEFAULT_METRIC_PATH;
     protected MonitorConfig config;
 
     private AsyncHttpClient createHttpClient(MonitorConfig config) {
@@ -88,6 +91,9 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
         String configFilename = DEFAULT_CONFIG_FILE;
         if (taskParams.containsKey(CONFIG_FILE_PARAM)) {
             configFilename = taskParams.get(CONFIG_FILE_PARAM);
+        }
+        if (taskParams.containsKey(METRIC_PATH_PARAM)) {
+            metricPath = StringUtils.stripEnd(taskParams.get(METRIC_PATH_PARAM), "| ");
         }
 
         config = readConfigFile(configFilename);
@@ -301,7 +307,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
             final long overallElapsedTime = System.currentTimeMillis() - overallStartTime;
             for (final SiteConfig site : config.getSites()) {
-                String metricPath = "Custom Metrics|URL Monitor|" + site.getName();
+                String myMetricPath = metricPath + "|" + site.getName();
                 int resultCount = results.get(site).size();
 
                 long totalFirstByteTime = 0;
@@ -328,41 +334,41 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 log.info(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
                         site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
 
-                getMetricWriter(metricPath + "|Average Response Time (ms)",
+                getMetricWriter(myMetricPath + "|Average Response Time (ms)",
                         MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
                         MetricWriter.METRIC_TIME_ROLLUP_TYPE_AVERAGE,
                         MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
                         Long.toString(averageElapsedTime));
-                getMetricWriter(metricPath + "|Download Time (ms)",
+                getMetricWriter(myMetricPath + "|Download Time (ms)",
                         MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
                         MetricWriter.METRIC_TIME_ROLLUP_TYPE_AVERAGE,
                         MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
                         Long.toString(averageDownloadTime));
-                getMetricWriter(metricPath + "|First Byte Time (ms)",
+                getMetricWriter(myMetricPath + "|First Byte Time (ms)",
                         MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
                         MetricWriter.METRIC_TIME_ROLLUP_TYPE_AVERAGE,
                         MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
                         Long.toString(averageFirstByteTime));
-                getMetricWriter(metricPath + "|Response Code",
+                getMetricWriter(myMetricPath + "|Response Code",
                         MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
                         MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
                         MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL).printMetric(
                         Integer.toString(statusCode));
-                getMetricWriter(metricPath + "|Status",
+                getMetricWriter(myMetricPath + "|Status",
                         MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
                         MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
                         MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL).printMetric(
                         Long.toString(status.ordinal()));
-                getMetricWriter(metricPath + "|Response Bytes",
+                getMetricWriter(myMetricPath + "|Response Bytes",
                         MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
                         MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
                         MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL).printMetric(
                         Long.toString(responseSize));
 
-                metricPath += "|Pattern Matches";
+                myMetricPath += "|Pattern Matches";
                 if (matches != null) {
                     for (Map.Entry<String, Integer> match : matches.entrySet()) {
-                        getMetricWriter(metricPath + "|" + match.getKey() + "|Count",
+                        getMetricWriter(myMetricPath + "|" + match.getKey() + "|Count",
                                 MetricWriter.METRIC_AGGREGATION_TYPE_SUM,
                                 MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
                                 MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
@@ -371,7 +377,6 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 }
             }
 
-            String metricPath = "Custom Metrics|URL Monitor";
             getMetricWriter(metricPath + "|Requests Sent",
                     MetricWriter.METRIC_AGGREGATION_TYPE_SUM,
                     MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
