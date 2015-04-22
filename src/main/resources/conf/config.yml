@@ -2,7 +2,7 @@ clientConfig:
     maxConnTotal:    1000
     maxConnPerRoute: 1000
     ignoreSslErrors: true
-    userAgent:       Mozilla/5.0 AppDynamics-UrlMonitor/1.0.6
+    userAgent:       Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/)
 
 defaultParams:
     method:          GET
