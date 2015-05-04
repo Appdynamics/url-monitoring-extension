@@ -1,7 +1,8 @@
 URL Monitor for AppDynamics
 ===========================
 
-An AppDynamics Machine Agent extension to visit a set of URLs and report whether they are up or down.
+An AppDynamics Machine Agent extension to visit a set of URLs and report whether they are up or down (and optionally 
+whether certain text patterns appear on those pages).
 
 This extension requires the Java Machine Agent.
 
@@ -124,7 +125,7 @@ at the individual site level.
 | **numAttempts**            | 1             | Number of times the site will be retrieved. The metrics then reported will be an average over all attempts. |
 | **treatAuthFailedAsError** | true          | If **false**, the extension will report the site status as "SUCCESS" even if authentication fails. |
 
-### Match Pattern Section
+#### Match Pattern Section
 
 | Option Name | Default Value | Option Description |
 | :---------- | :------------ | :----------------- |
@@ -139,7 +140,7 @@ The options for the pattern type are:
 | substring | Exact match on the given string  
 | caseInsensitiveSubstring | Case-insensitive match on the given string |
 | regex | Regular expression match |
-| word | Case-insensitive, but the target string must be surrounded by non-word characters |
+| word | Case-insensitive, but must be surrounded by non-word characters |
 
 ## Metrics Provided ##
 
@@ -149,7 +150,7 @@ The options for the pattern type are:
 - Status : UNKNOWN(0), CANCELED(1), FAILED(2), ERROR(3), SUCCESS(4)
 
 
-## Custom Dashboard ##
+## Sample Custom Dashboard ##
 ![](https://github.com/Appdynamics/site-monitoring-extension/raw/master/url-monitor-dashboard.png)
 
 ## Support ##
@@ -174,7 +175,7 @@ Find out more in the [Community][].
 ## Release Notes ##
 
 ### Version 1.1.0
- - Added pattern matching against 
+ - Added pattern matching against the retrieved pages.
 
 ### Version 1.0.6
  - Version bump
