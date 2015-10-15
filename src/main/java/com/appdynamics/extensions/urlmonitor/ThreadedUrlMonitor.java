@@ -44,6 +44,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 .setMaximumConnectionsTotal(clientConfig.getMaxConnTotal())
                 .setUserAgent(clientConfig.getUserAgent());
 
+
         return new AsyncHttpClient(builder.build());
     }
 
@@ -151,6 +152,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                         public STATE onStatusReceived(HttpResponseStatus status) throws Exception {
 
                             result.setFirstByteTime(System.currentTimeMillis() - startTime);
+                            result.setResponseCode(status.getStatusCode());
                             log.debug(String.format("[%s] First byte received in %d ms",
                                     site.getName(),
                                     result.getFirstByteTime()));
@@ -181,6 +183,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                                     status.getStatusCode(),
                                     status.getStatusText()));
                             result.setStatus(ResultStatus.ERROR);
+
                             return STATE.ABORT;
                         }
 
@@ -333,6 +336,10 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
                 log.info(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
                         site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
+
+                /*System.out.println(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
+                        site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
+*/
 
                 getMetricWriter(myMetricPath + "|Average Response Time (ms)",
                         MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
