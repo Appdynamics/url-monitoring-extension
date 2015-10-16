@@ -8,6 +8,7 @@ public class SiteConfigBase
     int connectTimeout = -1;
     Boolean treatAuthFailedAsError;
     int numAttempts = -1;
+    ProxyConfig proxyConfig;
 
     public String getMethod()
     {
@@ -57,6 +58,14 @@ public class SiteConfigBase
     public void setTreatAuthFailedAsError(Boolean treatAuthFailedAsError)
     {
         this.treatAuthFailedAsError = treatAuthFailedAsError;
+    }
+
+    public ProxyConfig getProxyConfig() {
+        return proxyConfig;
+    }
+
+    public void setProxyConfig(ProxyConfig proxyConfig) {
+        this.proxyConfig = proxyConfig;
     }
 
     @Override

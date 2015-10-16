@@ -44,7 +44,10 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 .setMaximumConnectionsTotal(clientConfig.getMaxConnTotal())
                 .setUserAgent(clientConfig.getUserAgent());
 
-
+        ProxyConfig proxyConfig = defaultSiteConfig.getProxyConfig();
+        if(proxyConfig != null){
+            builder.setProxyServer(new ProxyServer(proxyConfig.getHost(),proxyConfig.getPort()));
+        }
         return new AsyncHttpClient(builder.build());
     }
 
@@ -122,6 +125,11 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                                     .setPrincipal(site.getUsername())
                                     .setPassword(site.getPassword())
                                     .build());
+                    //proxy support
+                    ProxyConfig proxyConfig = site.getProxyConfig();
+                    if(proxyConfig != null){
+                        rb.setProxyServer(new ProxyServer(proxyConfig.getHost(),proxyConfig.getPort()));
+                    }
 
                     for (Map.Entry<String, String> header : site.getHeaders().entrySet()) {
                         rb.addHeader(header.getKey(), header.getValue());
@@ -337,9 +345,8 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 log.info(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
                         site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
 
-                /*System.out.println(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
+                System.out.println(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
                         site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
-*/
 
                 getMetricWriter(myMetricPath + "|Average Response Time (ms)",
                         MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
