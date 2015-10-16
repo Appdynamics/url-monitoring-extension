@@ -124,6 +124,7 @@ at the individual site level.
 | **connectTimeout**         | 30000         | Maximum time to wait for the HTTP handshake, in milliseconds |
 | **numAttempts**            | 1             | Number of times the site will be retrieved. The metrics then reported will be an average over all attempts. |
 | **treatAuthFailedAsError** | true          | If **false**, the extension will report the site status as "SUCCESS" even if authentication fails. |
+| **proxyConfig**            | null          | Specify the host and port of the proxy. |
 
 #### Match Pattern Section
 
