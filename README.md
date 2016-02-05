@@ -57,6 +57,9 @@ sites:
 
 - name:       Help
   url:        https://help.appdynamics.com
+  proxyConfig:
+      host: www.proxy.appdynamics.com
+      port: 8080 
 
 - name:       My Controller
   url:        https://mycontroller.saas.appdynamics.com/controller/rest/applications
