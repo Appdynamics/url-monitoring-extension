@@ -28,9 +28,6 @@ sites:
 
   - name:     File Download
     url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
-    proxyConfig:
-      host: www.proxy.appdynamics.com
-      port: 8080 
 
   - name:     My Controller
     url:      http://localhost:8090/controller/rest/applications
