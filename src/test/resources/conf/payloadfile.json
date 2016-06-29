@@ -1,0 +1,7 @@
+[
+  {
+    "metricName": "Custom Metrics|Test|MetricFromRESTClient",
+    "aggregatorType": "SUM",
+    "value": "10"
+  }
+]

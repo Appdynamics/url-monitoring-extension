@@ -6,6 +6,7 @@ public class MonitorConfig
     private ClientConfig clientConfig;
     private DefaultSiteConfig defaultParams;
     private SiteConfig[] sites;
+    private String metricPrefix;
 
     public ClientConfig getClientConfig()
     {
@@ -50,5 +51,13 @@ public class MonitorConfig
         }
 
         return total;
+    }
+
+    public String getMetricPrefix() {
+        return metricPrefix;
+    }
+
+    public void setMetricPrefix(String metricPrefix) {
+        this.metricPrefix = metricPrefix;
     }
 }

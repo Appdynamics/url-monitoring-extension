@@ -65,6 +65,20 @@ sites:
   url:        https://mycontroller.saas.appdynamics.com/controller/rest/applications
   username:   demouser@customer1
   password:   welcome
+  
+- name:     My POST site
+  url:      http://localhost:8293/api/v1/metrics
+  username:
+  password:
+  connectTimeout: 60000
+  method:   POST
+  headers:
+        Content-Type: application/json
+  requestPayloadFile: src/test/resources/conf/postrequestPayloadFile
+  matchPatterns:
+     - name:       Error
+       type:       substring
+       pattern:    Error 400
 ```
 
 ### Examples ###
@@ -111,9 +125,11 @@ The **clientConfig** section sets options for the HTTP client library, including
 | :------------------ | :------------ | :----------------- |
 | **maxConnTotal**    | 1000          | Maximum number of simultaneous HTTP connections |
 | **maxConnPerRoute** | 1000          | Maximum number of simultaneous HTTP connections to a single host |
+| **threadCount**     | 10            | Maximum number of Threads spawned to cater HTTP request
 | **ignoreSSlErrors** | false         | Whether to ignore errors in SSL certificate validation or host validation |
 | **userAgent**       | Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/) | Custom User-Agent header to send with requests (can be used to mimic desktop or mobile browsers) |
 | **followRedirects** | true          | Whether the client should follow Redirect responses |
+| **maxRedirects**    | 10            | Maximum redirects 
 
 #### Default Site Section
 
@@ -122,14 +138,33 @@ at the individual site level.
 
 | Option Name                | Default Value | Option Description |
 | :------------------------- | :------------ | :----------------- |
-| **method**                 | GET           | HTTP method to use (e.g. GET, HEAD, OPTIONS, etc.). The default is "HEAD", which avoids the overhead of retrieving the entire body of the response, but which prevents the agent from doing pattern matching or reporting the response size. Make sure you set the method to GET if you want these features. |
+| **method**                 | GET           | HTTP method to use (e.g. GET, POST, HEAD, OPTIONS, etc.). The default is "HEAD", which avoids the overhead of retrieving the entire body of the response, but which prevents the agent from doing pattern matching or reporting the response size. Make sure you set the method to GET if you want these features. |
 | **socketTimeout**          | 30000         | Maximum time to wait for a socket connection to open, in milliseconds |
 | **connectTimeout**         | 30000         | Maximum time to wait for the HTTP handshake, in milliseconds |
 | **numAttempts**            | 1             | Number of times the site will be retrieved. The metrics then reported will be an average over all attempts. |
 | **treatAuthFailedAsError** | true          | If **false**, the extension will report the site status as "SUCCESS" even if authentication fails. |
 | **proxyConfig**            | null          | Specify the host and port of the proxy. |
 
-#### Match Pattern Section
+#### ProxyConfig section
+| Option Name                | Default Value | Option Description |
+| :------------------------- | :------------ | :----------------- |
+| **host**                   | none          | proxy host         |
+| **port**                   | none          | proxy port         |
+| **username**               | none          | proxy username     |
+| **password**               | none          | proxy password     |
+
+### Site Section
+
+| Option Name                | Default Value | Option Description |
+| :---------- | :------------ | :----------------- |
+| **name**    | none          | Name of the url with which metric folder that will be created in Metric Browser |
+| **url**     | none          | The url to monitor |
+| **username**| none          | username if url has Basic Authentication |
+| **password**| none          | password if url has Basic Authentication |
+| **matchPatterns**| none          | match patterns to search for in the response |
+
+
+##### Match Pattern Section
 
 | Option Name | Default Value | Option Description |
 | :---------- | :------------ | :----------------- |
@@ -161,9 +196,9 @@ The options for the pattern type are:
 
 For any questions or feature requests, please contact the [AppDynamics Center of Excellence][].
 
-**Version:** 1.1.0  
+**Version:** 1.2.1  
 **Controller Compatibility:** 3.6 or later    
-**Last Updated:** 03/26/2015  
+**Last Updated:** 06/29/2016
 **Author:** Todd Radel
 
 ## Contributing ##
@@ -172,11 +207,14 @@ Always feel free to fork and contribute any changes directly via [GitHub][].
 
 ## Community ##
 
-Find out more in the [Community][].
+Find out more in the [AppDynamics Community][].
 
 ------------------------------------------------------------------------------
 
 ## Release Notes ##
+
+### Version 1.2.1
+ - Added POST functionality
 
 ### Version 1.1.0
  - Added pattern matching against the retrieved pages.
@@ -206,6 +244,6 @@ Find out more in the [Community][].
 
 
 [GitHub]: https://github.com/Appdynamics/url-monitoring-extension
-[AppDynamics Community]: http://community.appdynamics.com/
+[AppDynamics Community]: https://www.appdynamics.com/community/exchange/
 [AppDynamics Center of Excellence]: mailto:help@appdynamics.com
 

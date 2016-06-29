@@ -1,0 +1,38 @@
+clientConfig:
+    maxConnTotal:    1000
+    maxConnPerRoute: 1000
+    ignoreSslErrors: true
+    userAgent:       Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/)
+
+defaultParams:
+    method:          GET
+    socketTimeout:   30000
+    connectTimeout:  30000
+    numAttempts:     1
+
+
+#Sites that need to be monitored
+
+sites:
+
+  - name:       Google
+    url:        http://www.google.com
+
+  - name: My POST site
+    url: http://localhost:8293/api/v1/metrics
+      # username:
+      # password:
+    connectTimeout: 60000
+    method:   POST
+    headers:
+          Content-Type: application/json
+    requestPayloadFile: src/test/resources/conf/payloadfile.json
+      # matchPatterns:
+      #    - name:       Error
+      #      type:       substring
+      #      pattern:    Error 400
+
+
+
+#prefix used to show up metrics in AppDynamics
+metricPrefix:  "Custom Metrics|URLMonitor|"

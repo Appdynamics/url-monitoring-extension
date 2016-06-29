@@ -14,6 +14,7 @@ public class SiteConfig extends SiteConfigBase
     private String password;
     private Map<String, String> headers = new HashMap<String, String>();
     private List<MatchPattern> matchPatterns = new ArrayList<MatchPattern>();
+    private String requestPayloadFile;
 
     public String getName()
     {
@@ -71,6 +72,14 @@ public class SiteConfig extends SiteConfigBase
 
     public void setMatchPatterns(List<MatchPattern> matchPatterns) {
         this.matchPatterns = matchPatterns;
+    }
+
+    public String getRequestPayloadFile() {
+        return requestPayloadFile;
+    }
+
+    public void setRequestPayloadFile(String requestPayloadFile) {
+        this.requestPayloadFile = requestPayloadFile;
     }
 
     @Override

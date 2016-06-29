@@ -1,8 +1,12 @@
 package com.appdynamics.extensions.urlmonitor;
 
-import com.appdynamics.extensions.urlmonitor.config.*;
+import com.appdynamics.extensions.PathResolver;
 import com.appdynamics.extensions.urlmonitor.SiteResult.ResultStatus;
+import com.appdynamics.extensions.urlmonitor.config.*;
+import com.appdynamics.extensions.yml.YmlReader;
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
+import com.google.common.io.Files;
 import com.ning.http.client.*;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
 import com.singularity.ee.agent.systemagent.api.MetricWriter;
@@ -11,10 +15,11 @@ import com.singularity.ee.agent.systemagent.api.TaskOutput;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -25,10 +30,13 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
     private static final Logger log = Logger.getLogger(ThreadedUrlMonitor.class);
     private static final String DEFAULT_CONFIG_FILE = "config.yml";
     private static final String CONFIG_FILE_PARAM = "config-file";
-    private static final String METRIC_PATH_PARAM = "metric-path";
     private static final String DEFAULT_METRIC_PATH = "Custom Metrics|URL Monitor";
     private String metricPath = DEFAULT_METRIC_PATH;
     protected MonitorConfig config;
+
+    public ThreadedUrlMonitor() {
+        System.out.println(logVersion());
+    }
 
     private AsyncHttpClient createHttpClient(MonitorConfig config) {
         DefaultSiteConfig defaultSiteConfig = config.getDefaultParams();
@@ -36,12 +44,12 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
 
-        builder.setFollowRedirects(clientConfig.isFollowRedirects())
-                .setMaximumNumberOfRedirects(clientConfig.getMaxRedirects())
-                .setConnectionTimeoutInMs(defaultSiteConfig.getConnectTimeout())
-                .setRequestTimeoutInMs(defaultSiteConfig.getSocketTimeout())
-                .setMaximumConnectionsPerHost(clientConfig.getMaxConnPerRoute())
-                .setMaximumConnectionsTotal(clientConfig.getMaxConnTotal())
+        builder.setFollowRedirect(clientConfig.isFollowRedirects())
+                .setMaxRedirects(clientConfig.getMaxRedirects())
+                .setConnectTimeout(defaultSiteConfig.getConnectTimeout())
+                .setRequestTimeout(defaultSiteConfig.getSocketTimeout())
+                .setMaxConnectionsPerHost(clientConfig.getMaxConnPerRoute())
+                .setMaxConnections(clientConfig.getMaxConnTotal())
                 .setUserAgent(clientConfig.getUserAgent());
 
         ProxyConfig proxyConfig = defaultSiteConfig.getProxyConfig();
@@ -51,19 +59,33 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
         return new AsyncHttpClient(builder.build());
     }
 
-    public MonitorConfig readConfigFile(String filename) {
-        log.info("Reading configuration from " + filename);
-
-        FileReader configReader;
-        try {
-            configReader = new FileReader(filename);
-        } catch (FileNotFoundException e) {
-            log.error("File not found: " + filename, e);
-            return null;
+    private String getConfigFilename(String filename) {
+        if (filename == null) {
+            return "";
         }
+        // for absolute paths
+        if (new File(filename).exists()) {
+            return filename;
+        }
+        // for relative paths
+        File jarPath = PathResolver.resolveDirectory(AManagedMonitor.class);
+        String configFileName = "";
+        if (!Strings.isNullOrEmpty(filename)) {
+            configFileName = jarPath + File.separator + filename;
+        }
+        return configFileName;
+    }
 
-        Yaml yaml = new Yaml(new Constructor(MonitorConfig.class));
-        return (MonitorConfig) yaml.load(configReader);
+    private String readPostRequestFile(SiteConfig site) {
+        String requestBody = "";
+        try {
+             requestBody = Files.toString(new File(getConfigFilename(site.getRequestPayloadFile())), Charsets.UTF_8);
+        } catch (FileNotFoundException e) {
+            log.error("Post Request Payload file not found for url " + site.getUrl(), e);
+        } catch (IOException e) {
+            log.error("Exception while reading PostRequest Body file for url " + site.getUrl(), e);
+        }
+        return requestBody;
     }
 
     protected void setSiteDefaults() {
@@ -91,18 +113,20 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
     //    @Override
     public TaskOutput execute(Map<String, String> taskParams, TaskExecutionContext taskContext)
             throws TaskExecutionException {
+        log.info(logVersion());
 
         String configFilename = DEFAULT_CONFIG_FILE;
         if (taskParams.containsKey(CONFIG_FILE_PARAM)) {
             configFilename = taskParams.get(CONFIG_FILE_PARAM);
         }
-        if (taskParams.containsKey(METRIC_PATH_PARAM)) {
-            metricPath = StringUtils.stripEnd(taskParams.get(METRIC_PATH_PARAM), "| ");
-        }
 
-        config = readConfigFile(configFilename);
+        config = YmlReader.readFromFile(configFilename, MonitorConfig.class);
         if (config == null)
             return null;
+
+        if(!Strings.isNullOrEmpty(config.getMetricPrefix())) {
+            metricPath = StringUtils.stripEnd(config.getMetricPrefix(), "|");
+        }
 
         final CountDownLatch latch = new CountDownLatch(config.getTotalAttemptCount());
         log.info(String.format("Sending %d HTTP requests asynchronously to %d sites",
@@ -125,10 +149,20 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                                     .setPrincipal(site.getUsername())
                                     .setPassword(site.getPassword())
                                     .build());
+                    if(!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {
+                        rb.setBody(readPostRequestFile(site));
+                        if (!"post".equalsIgnoreCase(site.getMethod())) {
+                            rb.setMethod("POST");
+                        }
+                    }
                     //proxy support
                     ProxyConfig proxyConfig = site.getProxyConfig();
                     if(proxyConfig != null){
-                        rb.setProxyServer(new ProxyServer(proxyConfig.getHost(),proxyConfig.getPort()));
+                        if(proxyConfig.getUsername() != null && proxyConfig.getPassword() != null) {
+                            rb.setProxyServer(new ProxyServer(proxyConfig.getHost(),proxyConfig.getPort(), proxyConfig.getUsername(), proxyConfig.getPassword()));
+                        } else {
+                            rb.setProxyServer(new ProxyServer(proxyConfig.getHost(),proxyConfig.getPort()));
+                        }
                     }
 
                     for (Map.Entry<String, String> header : site.getHeaders().entrySet()) {
@@ -345,8 +379,8 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 log.info(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
                         site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
 
-                /*System.out.println(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
-                        site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));*/
+                System.out.println(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
+                        site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
 
                 getMetricWriter(myMetricPath + "|Average Response Time (ms)",
                         MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
@@ -413,12 +447,12 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
         return new TaskOutput("Success");
     }
 
-    public static void main(String[] argv)
-            throws Exception {
-        Map<String, String> taskParams = new HashMap<String, String>();
-        taskParams.put(CONFIG_FILE_PARAM, "src/main/resources/conf/config.yml");
+    private String logVersion() {
+        String msg = "Using Monitor Version [" + getImplementationVersion() + "]";
+        return msg;
+    }
 
-        ThreadedUrlMonitor monitor = new ThreadedUrlMonitor();
-        monitor.execute(taskParams, null);
+    private static String getImplementationVersion() {
+        return ThreadedUrlMonitor.class.getPackage().getImplementationTitle();
     }
 }
