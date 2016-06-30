@@ -114,6 +114,18 @@ Retrieve the Google home page and count how many times the word "Mail" appears:
 	      type:       word
 	      pattern:    Mail
 
+POST xml or json payload to any url and search for the patterns in the response
+
+   - name:     My POST site
+     url:      http://myposturl
+     method:   POST
+     headers:
+           Content-Type: application/json
+     requestPayloadFile: path/to/postrequestPayloadFile
+     matchPatterns:
+         - name:       Error
+           type:       substring
+           pattern:    Error 400
 
 ### Configuration Reference ###
 

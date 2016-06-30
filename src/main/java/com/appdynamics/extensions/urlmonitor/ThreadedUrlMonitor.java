@@ -360,13 +360,15 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 long totalElapsedTime = 0;
                 int statusCode = 0;
                 long responseSize = 0;
-
+                //int availability = 0;
                 HashMap<String, Integer> matches = null;
                 SiteResult.ResultStatus status = SiteResult.ResultStatus.UNKNOWN;
                 for (SiteResult result : results.get(site)) {
                     status = result.getStatus();
                     statusCode = result.getResponseCode();
-
+                    /*if(statusCode == 200) {
+                        availability = 1;
+                    }*/
                     responseSize = result.getResponseBytes();
                     totalFirstByteTime += result.getFirstByteTime();
                     totalDownloadTime += result.getDownloadTime();
@@ -387,6 +389,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 printMetric(myMetricPath + "|Response Code", Integer.toString(statusCode));
                 printMetric(myMetricPath + "|Status", Long.toString(status.ordinal()));
                 printMetric(myMetricPath + "|Response Bytes", Long.toString(responseSize));
+                //printMetric(myMetricPath + "|Availability", Integer.toString(availability));
 
                 myMetricPath += "|Pattern Matches";
                 if (matches != null) {

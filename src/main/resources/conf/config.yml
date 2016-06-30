@@ -25,7 +25,6 @@ sites:
   - name:     AppDynamics
     url:      http://www.appdynamics.com
 
-
   - name:     File Download
     url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
 
@@ -34,20 +33,6 @@ sites:
     username: user1@customer1
     password: welcome
     connectTimeout: 60000
-
-  - name:     My POST site
-    url:      http://localhost:8293/api/v1/metrics
-    # username:
-    # password:
-    connectTimeout: 60000
-    method:   POST
-    headers:
-          Content-Type: application/json
-    requestPayloadFile: src/test/resources/conf/postrequestPayloadFile
-    # matchPatterns:
-    #    - name:       Error
-    #      type:       substring
-    #      pattern:    Error 400
 
 
 #prefix used to show up metrics in AppDynamics

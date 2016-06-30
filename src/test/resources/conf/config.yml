@@ -20,17 +20,17 @@ sites:
 
   - name: My POST site
     url: http://localhost:8293/api/v1/metrics
-      # username:
-      # password:
+    # username:
+    # password:
     connectTimeout: 60000
     method:   POST
     headers:
           Content-Type: application/json
     requestPayloadFile: src/test/resources/conf/payloadfile.json
-      # matchPatterns:
-      #    - name:       Error
-      #      type:       substring
-      #      pattern:    Error 400
+    # matchPatterns:
+    #    - name:       Error
+    #      type:       substring
+    #      pattern:    Error 400
 
 
 
