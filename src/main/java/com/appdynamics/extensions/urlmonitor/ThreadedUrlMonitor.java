@@ -360,11 +360,13 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 long totalElapsedTime = 0;
                 int statusCode = 0;
                 long responseSize = 0;
+
                 HashMap<String, Integer> matches = null;
                 SiteResult.ResultStatus status = SiteResult.ResultStatus.UNKNOWN;
                 for (SiteResult result : results.get(site)) {
                     status = result.getStatus();
                     statusCode = result.getResponseCode();
+
                     responseSize = result.getResponseBytes();
                     totalFirstByteTime += result.getFirstByteTime();
                     totalDownloadTime += result.getDownloadTime();
@@ -379,39 +381,12 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 log.info(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
                         site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
 
-                System.out.println(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
-                        site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
-
-                getMetricWriter(myMetricPath + "|Average Response Time (ms)",
-                        MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
-                        MetricWriter.METRIC_TIME_ROLLUP_TYPE_AVERAGE,
-                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
-                        Long.toString(averageElapsedTime));
-                getMetricWriter(myMetricPath + "|Download Time (ms)",
-                        MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
-                        MetricWriter.METRIC_TIME_ROLLUP_TYPE_AVERAGE,
-                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
-                        Long.toString(averageDownloadTime));
-                getMetricWriter(myMetricPath + "|First Byte Time (ms)",
-                        MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
-                        MetricWriter.METRIC_TIME_ROLLUP_TYPE_AVERAGE,
-                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
-                        Long.toString(averageFirstByteTime));
-                getMetricWriter(myMetricPath + "|Response Code",
-                        MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
-                        MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
-                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL).printMetric(
-                        Integer.toString(statusCode));
-                getMetricWriter(myMetricPath + "|Status",
-                        MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
-                        MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
-                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL).printMetric(
-                        Long.toString(status.ordinal()));
-                getMetricWriter(myMetricPath + "|Response Bytes",
-                        MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
-                        MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
-                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL).printMetric(
-                        Long.toString(responseSize));
+                printMetric(myMetricPath + "|Average Response Time (ms)", Long.toString(averageElapsedTime));
+                printMetric(myMetricPath + "|Download Time (ms)", Long.toString(averageDownloadTime));
+                printMetric(myMetricPath + "|First Byte Time (ms)", Long.toString(averageFirstByteTime));
+                printMetric(myMetricPath + "|Response Code", Integer.toString(statusCode));
+                printMetric(myMetricPath + "|Status", Long.toString(status.ordinal()));
+                printMetric(myMetricPath + "|Response Bytes", Long.toString(responseSize));
 
                 myMetricPath += "|Pattern Matches";
                 if (matches != null) {
@@ -445,6 +420,15 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
         }
 
         return new TaskOutput("Success");
+    }
+
+    private void printMetric(String metricName, String metricValue) {
+        if(!Strings.isNullOrEmpty(metricValue)) {
+            getMetricWriter(metricName,
+                    MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
+                    MetricWriter.METRIC_TIME_ROLLUP_TYPE_AVERAGE,
+                    MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(metricValue);
+        }
     }
 
     private String logVersion() {
