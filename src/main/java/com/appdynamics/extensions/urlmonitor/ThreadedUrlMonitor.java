@@ -45,7 +45,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
 
         builder.setFollowRedirect(clientConfig.isFollowRedirects())
-                .setIgnoreSslErrors(clientConfig.isIgnoreSslErrors())
+                .setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
                 .setMaxRedirects(clientConfig.getMaxRedirects())
                 .setConnectTimeout(defaultSiteConfig.getConnectTimeout())
                 .setRequestTimeout(defaultSiteConfig.getSocketTimeout())
