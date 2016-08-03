@@ -208,9 +208,9 @@ The options for the pattern type are:
 
 For any questions or feature requests, please contact the [AppDynamics Center of Excellence][].
 
-**Version:** 1.2.1  
-**Controller Compatibility:** 3.6 or later    
-**Last Updated:** 06/29/2016
+**Version:** 1.2.2  
+**Controller Compatibility:** 3.7 or later    
+**Last Updated:** 07/28/2016
 **Author:** Todd Radel
 
 ## Contributing ##
@@ -225,8 +225,11 @@ Find out more in the [AppDynamics Community][].
 
 ## Release Notes ##
 
+### Version 1.2.2
+ - Corrected issues with ignoreSSLErrors functionality.
+
 ### Version 1.2.1
- - Added POST functionality
+ - Added POST functionality.
 
 ### Version 1.1.0
  - Added pattern matching against the retrieved pages.
