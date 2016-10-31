@@ -188,12 +188,12 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                             results.get(site)
                                     .add(result);
                             latch.countDown();
-                            printMetricsForRequestCompleted(results,site);
+                            printMetricsForRequestCompleted(results.get(site),site);
                             log.info(latch.getCount() + " requests remaining");
                         }
-                        private void printMetricsForRequestCompleted(Map<SiteConfig, List<SiteResult>> results, SiteConfig site){
+                        private void printMetricsForRequestCompleted(List<SiteResult> results, SiteConfig site){
                             String myMetricPath = metricPath + "|" + site.getName();
-                            int resultCount = results.get(site).size();
+                            int resultCount = results.size();
 
                             long totalFirstByteTime = 0;
                             long totalDownloadTime = 0;
@@ -203,7 +203,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                             //int availability = 0;
                             HashMap<String, Integer> matches = null;
                             SiteResult.ResultStatus status = SiteResult.ResultStatus.UNKNOWN;
-                            for (SiteResult result : results.get(site)) {
+                            for (SiteResult result : results) {
                                 status = result.getStatus();
                                 statusCode = result.getResponseCode();
                                 /*if(statusCode == 200) {
