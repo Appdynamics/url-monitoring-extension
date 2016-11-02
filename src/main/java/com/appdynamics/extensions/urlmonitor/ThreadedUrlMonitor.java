@@ -188,8 +188,61 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                             results.get(site)
                                     .add(result);
                             latch.countDown();
+                            printMetricsForRequestCompleted(results.get(site),site);
                             log.info(latch.getCount() + " requests remaining");
                         }
+                        private void printMetricsForRequestCompleted(List<SiteResult> results, SiteConfig site){
+                            String myMetricPath = metricPath + "|" + site.getName();
+                            int resultCount = results.size();
+
+                            long totalFirstByteTime = 0;
+                            long totalDownloadTime = 0;
+                            long totalElapsedTime = 0;
+                            int statusCode = 0;
+                            long responseSize = 0;
+                            //int availability = 0;
+                            HashMap<String, Integer> matches = null;
+                            SiteResult.ResultStatus status = SiteResult.ResultStatus.UNKNOWN;
+                            for (SiteResult result : results) {
+                                status = result.getStatus();
+                                statusCode = result.getResponseCode();
+                                /*if(statusCode == 200) {
+                                    availability = 1;
+                                }*/
+                                responseSize = result.getResponseBytes();
+                                totalFirstByteTime += result.getFirstByteTime();
+                                totalDownloadTime += result.getDownloadTime();
+                                totalElapsedTime += result.getTotalTime();
+                                matches = result.getMatches();
+                            }
+
+                            long averageFirstByteTime = totalFirstByteTime / resultCount;
+                            long averageDownloadTime = totalDownloadTime / resultCount;
+                            long averageElapsedTime = totalElapsedTime / resultCount;
+
+                            log.info(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
+                                    site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
+
+                            printMetric(myMetricPath + "|Average Response Time (ms)", Long.toString(averageElapsedTime));
+                            printMetric(myMetricPath + "|Download Time (ms)", Long.toString(averageDownloadTime));
+                            printMetric(myMetricPath + "|First Byte Time (ms)", Long.toString(averageFirstByteTime));
+                            printMetric(myMetricPath + "|Response Code", Integer.toString(statusCode));
+                            printMetric(myMetricPath + "|Status", Long.toString(status.ordinal()));
+                            printMetric(myMetricPath + "|Response Bytes", Long.toString(responseSize));
+                            //printMetric(myMetricPath + "|Availability", Integer.toString(availability));
+
+                            myMetricPath += "|Pattern Matches";
+                            if (matches != null) {
+                                for (Map.Entry<String, Integer> match : matches.entrySet()) {
+                                    getMetricWriter(myMetricPath + "|" + match.getKey() + "|Count",
+                                            MetricWriter.METRIC_AGGREGATION_TYPE_SUM,
+                                            MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
+                                            MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
+                                            Long.toString(match.getValue()));
+                                }
+                            }
+                        
+                    }
 
                         @Override
                         public STATE onStatusReceived(HttpResponseStatus status) throws Exception {
@@ -352,57 +405,6 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
             client.close();
 
             final long overallElapsedTime = System.currentTimeMillis() - overallStartTime;
-            for (final SiteConfig site : config.getSites()) {
-                String myMetricPath = metricPath + "|" + site.getName();
-                int resultCount = results.get(site).size();
-
-                long totalFirstByteTime = 0;
-                long totalDownloadTime = 0;
-                long totalElapsedTime = 0;
-                int statusCode = 0;
-                long responseSize = 0;
-                //int availability = 0;
-                HashMap<String, Integer> matches = null;
-                SiteResult.ResultStatus status = SiteResult.ResultStatus.UNKNOWN;
-                for (SiteResult result : results.get(site)) {
-                    status = result.getStatus();
-                    statusCode = result.getResponseCode();
-                    /*if(statusCode == 200) {
-                        availability = 1;
-                    }*/
-                    responseSize = result.getResponseBytes();
-                    totalFirstByteTime += result.getFirstByteTime();
-                    totalDownloadTime += result.getDownloadTime();
-                    totalElapsedTime += result.getTotalTime();
-                    matches = result.getMatches();
-                }
-
-                long averageFirstByteTime = totalFirstByteTime / resultCount;
-                long averageDownloadTime = totalDownloadTime / resultCount;
-                long averageElapsedTime = totalElapsedTime / resultCount;
-
-                log.info(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
-                        site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
-
-                printMetric(myMetricPath + "|Average Response Time (ms)", Long.toString(averageElapsedTime));
-                printMetric(myMetricPath + "|Download Time (ms)", Long.toString(averageDownloadTime));
-                printMetric(myMetricPath + "|First Byte Time (ms)", Long.toString(averageFirstByteTime));
-                printMetric(myMetricPath + "|Response Code", Integer.toString(statusCode));
-                printMetric(myMetricPath + "|Status", Long.toString(status.ordinal()));
-                printMetric(myMetricPath + "|Response Bytes", Long.toString(responseSize));
-                //printMetric(myMetricPath + "|Availability", Integer.toString(availability));
-
-                myMetricPath += "|Pattern Matches";
-                if (matches != null) {
-                    for (Map.Entry<String, Integer> match : matches.entrySet()) {
-                        getMetricWriter(myMetricPath + "|" + match.getKey() + "|Count",
-                                MetricWriter.METRIC_AGGREGATION_TYPE_SUM,
-                                MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
-                                MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
-                                Long.toString(match.getValue()));
-                    }
-                }
-            }
 
             getMetricWriter(metricPath + "|Requests Sent",
                     MetricWriter.METRIC_AGGREGATION_TYPE_SUM,
@@ -443,4 +445,5 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
     private static String getImplementationVersion() {
         return ThreadedUrlMonitor.class.getPackage().getImplementationTitle();
     }
+    
 }
