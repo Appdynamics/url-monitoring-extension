@@ -225,6 +225,9 @@ Find out more in the [AppDynamics Community][].
 
 ## Release Notes ##
 
+### Version 1.2.3
+ - Fixed metric drop issue in case of large number of URLs
+
 ### Version 1.2.2
  - Corrected issues with ignoreSSLErrors functionality.
 
