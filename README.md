@@ -208,7 +208,7 @@ The options for the pattern type are:
 
 For any questions or feature requests, please contact the [AppDynamics Center of Excellence][].
 
-**Version:** 1.2.2  
+**Version:** 1.2.3  
 **Controller Compatibility:** 3.7 or later    
 **Last Updated:** 07/28/2016
 **Author:** Todd Radel
