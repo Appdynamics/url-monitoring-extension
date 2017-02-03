@@ -15,6 +15,7 @@ public class SiteConfig extends SiteConfigBase
     private Map<String, String> headers = new HashMap<String, String>();
     private List<MatchPattern> matchPatterns = new ArrayList<MatchPattern>();
     private String requestPayloadFile;
+    private String metricPrefix;
 
     public String getName()
     {
@@ -88,6 +89,13 @@ public class SiteConfig extends SiteConfigBase
         return "SiteConfig{" +
                 "name='" + name + '\'' +
                 '}';
+    }
+    public String getMetricPrefix() {
+        return metricPrefix;
+    }
+
+    public void setMetricPrefix(String metricPrefix) {
+        this.metricPrefix = metricPrefix;
     }
 }
 
