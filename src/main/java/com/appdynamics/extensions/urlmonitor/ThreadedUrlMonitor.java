@@ -2,25 +2,48 @@ package com.appdynamics.extensions.urlmonitor;
 
 import com.appdynamics.extensions.PathResolver;
 import com.appdynamics.extensions.urlmonitor.SiteResult.ResultStatus;
-import com.appdynamics.extensions.urlmonitor.config.*;
+import com.appdynamics.extensions.urlmonitor.config.ClientConfig;
+import com.appdynamics.extensions.urlmonitor.config.DefaultSiteConfig;
+import com.appdynamics.extensions.urlmonitor.config.MatchPattern;
+import com.appdynamics.extensions.urlmonitor.config.MonitorConfig;
+import com.appdynamics.extensions.urlmonitor.config.ProxyConfig;
+import com.appdynamics.extensions.urlmonitor.config.SiteConfig;
 import com.appdynamics.extensions.yml.YmlReader;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
-import com.ning.http.client.*;
+import com.ning.http.client.AsyncCompletionHandler;
+import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.AsyncHttpClientConfig;
+import com.ning.http.client.HttpResponseBodyPart;
+import com.ning.http.client.HttpResponseHeaders;
+import com.ning.http.client.HttpResponseStatus;
+import com.ning.http.client.ProxyServer;
+import com.ning.http.client.Realm;
+import com.ning.http.client.Request;
+import com.ning.http.client.RequestBuilder;
+import com.ning.http.client.Response;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
 import com.singularity.ee.agent.systemagent.api.MetricWriter;
 import com.singularity.ee.agent.systemagent.api.TaskExecutionContext;
 import com.singularity.ee.agent.systemagent.api.TaskOutput;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
@@ -54,8 +77,8 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 .setUserAgent(clientConfig.getUserAgent());
 
         ProxyConfig proxyConfig = defaultSiteConfig.getProxyConfig();
-        if(proxyConfig != null){
-            builder.setProxyServer(new ProxyServer(proxyConfig.getHost(),proxyConfig.getPort()));
+        if (proxyConfig != null) {
+            builder.setProxyServer(new ProxyServer(proxyConfig.getHost(), proxyConfig.getPort()));
         }
         return new AsyncHttpClient(builder.build());
     }
@@ -80,7 +103,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
     private String readPostRequestFile(SiteConfig site) {
         String requestBody = "";
         try {
-             requestBody = Files.toString(new File(getConfigFilename(site.getRequestPayloadFile())), Charsets.UTF_8);
+            requestBody = Files.toString(new File(getConfigFilename(site.getRequestPayloadFile())), Charsets.UTF_8);
         } catch (FileNotFoundException e) {
             log.error("Post Request Payload file not found for url " + site.getUrl(), e);
         } catch (IOException e) {
@@ -114,8 +137,9 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
     //    @Override
     public TaskOutput execute(Map<String, String> taskParams, TaskExecutionContext taskContext)
             throws TaskExecutionException {
-        log.info(logVersion());
 
+        if (taskParams != null) {
+            log.info(logVersion());
         String configFilename = DEFAULT_CONFIG_FILE;
         if (taskParams.containsKey(CONFIG_FILE_PARAM)) {
             configFilename = taskParams.get(CONFIG_FILE_PARAM);
@@ -125,7 +149,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
         if (config == null)
             return null;
 
-        if(!Strings.isNullOrEmpty(config.getMetricPrefix())) {
+        if (!Strings.isNullOrEmpty(config.getMetricPrefix())) {
             metricPath = StringUtils.stripEnd(config.getMetricPrefix(), "|");
         }
 
@@ -137,6 +161,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
         final ConcurrentHashMap<SiteConfig, List<SiteResult>> results = buildResultMap();
         final long overallStartTime = System.currentTimeMillis();
         final AsyncHttpClient client = createHttpClient(config);
+        final Map<String, Integer> groupStatus = new HashMap<String, Integer>();
 
         try {
             for (final SiteConfig site : config.getSites()) {
@@ -150,7 +175,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                                     .setPrincipal(site.getUsername())
                                     .setPassword(site.getPassword())
                                     .build());
-                    if(!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {
+                    if (!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {
                         rb.setBody(readPostRequestFile(site));
                         if (!"post".equalsIgnoreCase(site.getMethod())) {
                             rb.setMethod("POST");
@@ -158,11 +183,11 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                     }
                     //proxy support
                     ProxyConfig proxyConfig = site.getProxyConfig();
-                    if(proxyConfig != null){
-                        if(proxyConfig.getUsername() != null && proxyConfig.getPassword() != null) {
-                            rb.setProxyServer(new ProxyServer(proxyConfig.getHost(),proxyConfig.getPort(), proxyConfig.getUsername(), proxyConfig.getPassword()));
+                    if (proxyConfig != null) {
+                        if (proxyConfig.getUsername() != null && proxyConfig.getPassword() != null) {
+                            rb.setProxyServer(new ProxyServer(proxyConfig.getHost(), proxyConfig.getPort(), proxyConfig.getUsername(), proxyConfig.getPassword()));
                         } else {
-                            rb.setProxyServer(new ProxyServer(proxyConfig.getHost(),proxyConfig.getPort()));
+                            rb.setProxyServer(new ProxyServer(proxyConfig.getHost(), proxyConfig.getPort()));
                         }
                     }
 
@@ -188,10 +213,11 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                             results.get(site)
                                     .add(result);
                             latch.countDown();
-                            printMetricsForRequestCompleted(results.get(site),site);
+                            printMetricsForRequestCompleted(results.get(site), site);
                             log.info(latch.getCount() + " requests remaining");
                         }
-                        private void printMetricsForRequestCompleted(List<SiteResult> results, SiteConfig site){
+
+                        private void printMetricsForRequestCompleted(List<SiteResult> results, SiteConfig site) {
                             String myMetricPath = metricPath + "|" + site.getName();
                             int resultCount = results.size();
 
@@ -223,13 +249,30 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                             log.info(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
                                     site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
 
-                            printMetric(myMetricPath + "|Average Response Time (ms)", Long.toString(averageElapsedTime));
-                            printMetric(myMetricPath + "|Download Time (ms)", Long.toString(averageDownloadTime));
-                            printMetric(myMetricPath + "|First Byte Time (ms)", Long.toString(averageFirstByteTime));
-                            printMetric(myMetricPath + "|Response Code", Integer.toString(statusCode));
-                            printMetric(myMetricPath + "|Status", Long.toString(status.ordinal()));
-                            printMetric(myMetricPath + "|Response Bytes", Long.toString(responseSize));
-                            //printMetric(myMetricPath + "|Availability", Integer.toString(availability));
+
+                            if (!Strings.isNullOrEmpty(site.getGroupName())) {
+                                myMetricPath = metricPath + "|" + site.getGroupName() + "|" + site.getName();
+
+                                if (statusCode == 200) {
+
+                                    Integer count = groupStatus.get(site.getGroupName());
+
+                                    if (count == null) {
+                                        groupStatus.put(site.getGroupName(), 1);
+                                    } else {
+                                        groupStatus.put(site.getGroupName(), ++count);
+                                    }
+                                }
+                            }
+
+                            printMetricWithValue(myMetricPath + "|Average Response Time (ms)", Long.toString(averageElapsedTime));
+                            printMetricWithValue(myMetricPath + "|Download Time (ms)", Long.toString(averageDownloadTime));
+                            printMetricWithValue(myMetricPath + "|First Byte Time (ms)", Long.toString(averageFirstByteTime));
+                            printMetricWithValue(myMetricPath + "|Response Code", Integer.toString(statusCode));
+                            printMetricWithValue(myMetricPath + "|Status", Long.toString(status.ordinal()));
+                            printMetricWithValue(myMetricPath + "|Response Bytes", Long.toString(responseSize));
+                            //printMetricWithValue(myMetricPath + "|Availability", Integer.toString(availability));
+
 
                             myMetricPath += "|Pattern Matches";
                             if (matches != null) {
@@ -241,8 +284,8 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                                             Long.toString(match.getValue()));
                                 }
                             }
-                        
-                    }
+
+                        }
 
                         @Override
                         public STATE onStatusReceived(HttpResponseStatus status) throws Exception {
@@ -261,8 +304,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                                         status.getStatusCode(),
                                         status.getStatusText()));
                                 return STATE.CONTINUE;
-                            }
-                            else if (status.getStatusCode() == 401 && !site.isTreatAuthFailedAsError()) {
+                            } else if (status.getStatusCode() == 401 && !site.isTreatAuthFailedAsError()) {
                                 log.info(String.format("[%s] %s %s -> %d %s [but OK]",
                                         site.getName(),
                                         site.getMethod(),
@@ -416,6 +458,15 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                     MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
                     MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
                     Long.toString(overallElapsedTime));
+            for (Map.Entry entry : groupStatus.entrySet()) {
+                String metricName = metricPath + "|" + entry.getKey() + "|Responsive Site Count";
+                Integer metricValue = groupStatus.get(entry.getKey());
+
+                printMetricWithValue(metricName, String.valueOf(
+                        metricValue), MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
+                        MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
+                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE);
+            }
 
             log.info("All requests completed in " + overallElapsedTime + " ms");
         } catch (Exception ex) {
@@ -427,13 +478,31 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
         return new TaskOutput("Success");
     }
+        throw new TaskExecutionException("Threaded URL Monitoring completed with failures.");
+    }
 
-    private void printMetric(String metricName, String metricValue) {
-        if(!Strings.isNullOrEmpty(metricValue)) {
-            getMetricWriter(metricName,
-                    MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
+    protected void printMetricWithValue(String metricName, String metricValue) {
+        if (!Strings.isNullOrEmpty(metricValue)) {
+
+            printMetricWithValue(metricName, metricValue, MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
                     MetricWriter.METRIC_TIME_ROLLUP_TYPE_AVERAGE,
-                    MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(metricValue);
+                    MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE);
+        } else {
+            log.debug(String.format("Ignoring the metric %s as the value is null", metricName));
+        }
+    }
+
+    protected void printMetricWithValue(String metricName, String metricValue, String aggregationType, String rollupType, String clusterRollupType) {
+        if (!Strings.isNullOrEmpty(metricValue)) {
+
+            log.debug(String.format("Printing metric %s with value %s", metricName, metricValue));
+
+            MetricWriter metricWriter = getMetricWriter(metricName,
+                    aggregationType,
+                    rollupType,
+                    clusterRollupType);
+            System.out.println(metricWriter);
+            metricWriter.printMetric(metricValue);
         }
     }
 
@@ -445,5 +514,25 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
     private static String getImplementationVersion() {
         return ThreadedUrlMonitor.class.getPackage().getImplementationTitle();
     }
-    
+
+    public static void main(String[] args) throws TaskExecutionException {
+
+        ConsoleAppender ca = new ConsoleAppender();
+        ca.setWriter(new OutputStreamWriter(System.out));
+        ca.setLayout(new PatternLayout("%-5p [%t]: %m%n"));
+        ca.setThreshold(Level.DEBUG);
+
+        log.getRootLogger().addAppender(ca);
+
+        ThreadedUrlMonitor monitor = new ThreadedUrlMonitor();
+
+
+        final Map<String, String> taskArgs = new HashMap<String, String>();
+        taskArgs.put("config-file", "/Users/akshay.srivastava/AppDynamics/extensions/url-monitoring-extension/src/main/resources/conf/config.yml");
+
+
+        monitor.execute(taskArgs, null);
+
+    }
+
 }

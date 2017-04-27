@@ -8,6 +8,7 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class SiteConfig extends SiteConfigBase
 {
+    private String groupName;
     private String name;
     private String url;
     private String username;
@@ -82,11 +83,19 @@ public class SiteConfig extends SiteConfigBase
         this.requestPayloadFile = requestPayloadFile;
     }
 
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+
     @Override
     public String toString()
     {
         return "SiteConfig{" +
-                "name='" + name + '\'' +
+                "name='" + groupName +  '-' +name + '\'' +
                 '}';
     }
 }
