@@ -47,6 +47,7 @@ sites:
 
 - name:       Google
   url:        http://www.google.com
+  groupName
 
 - name:       AppDynamics
   url:        https://www.appdynamics.com
