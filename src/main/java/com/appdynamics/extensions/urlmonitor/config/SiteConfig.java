@@ -13,7 +13,7 @@ public class SiteConfig extends SiteConfigBase
     private String url;
     private String username;
     private String password;
-    private String passwordEncrypted;
+    private String encryptedPassword;
     private String encryptionKey;
     private Map<String, String> headers = new HashMap<String, String>();
     private List<MatchPattern> matchPatterns = new ArrayList<MatchPattern>();
@@ -69,14 +69,14 @@ public class SiteConfig extends SiteConfigBase
         this.password = password;
     }
 
-    public String getPasswordEncrypted()
+    public String getEncryptedPassword()
     {
-        return passwordEncrypted;
+        return encryptedPassword;
     }
 
-    public void setPasswordEncrypted(String passwordEncrypted)
+    public void setEncryptedPassword(String encryptedPassword)
     {
-        this.passwordEncrypted = passwordEncrypted;
+        this.encryptedPassword = encryptedPassword;
     }
 
     public String getEncryptionKey()

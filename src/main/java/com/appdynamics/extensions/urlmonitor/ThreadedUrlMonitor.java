@@ -175,7 +175,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                             .setRealm(new Realm.RealmBuilder()
                                     .setScheme(Realm.AuthScheme.BASIC)
                                     .setPrincipal(site.getUsername())
-                                    .setPassword(getPassword(site.getPassword(), site.getPasswordEncrypted(), site.getEncryptionKey()))
+                                    .setPassword(getPassword(site.getPassword(), site.getEncryptedPassword(), site.getEncryptionKey()))
                                     .build());
                     if (!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {
                         rb.setBody(readPostRequestFile(site));
@@ -514,7 +514,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
     }
 
 
-    private String getPassword(String password, String passwordEncrypted, String encryptionKey) {
+    private String getPassword(String password, String encryptedPassword, String encryptionKey) {
 
         Map<String, String> map = new HashMap<String, String>();
 
@@ -523,9 +523,9 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
             map.put(TaskInputArgs.PASSWORD, password);
         }
 
-        if (passwordEncrypted != null) {
-            log.debug("Using provided passwordEncrypted");
-            map.put(TaskInputArgs.PASSWORD_ENCRYPTED, passwordEncrypted);
+        if (encryptedPassword != null) {
+            log.debug("Using provided encryptedPassword");
+            map.put(TaskInputArgs.PASSWORD_ENCRYPTED, encryptedPassword);
             map.put(TaskInputArgs.ENCRYPTION_KEY, encryptionKey);
         }
 
