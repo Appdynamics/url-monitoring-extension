@@ -96,6 +96,14 @@ Supply a username and password for HTTP Basic authentication:
 	  url:             http://localhost:8090/controller/rest/applications
 	  username:        demouser@customer1
 	  password:        welcome
+	  
+Supply a username and encrypted password for HTTP Basic authentication:
+
+	- name:            My Login Page
+	  url:             http://localhost:8090/controller/rest/applications
+	  username:        demouser@customer1
+	  encryptedPassword:        gC9FihggtJ3nTVxRZKQyPA==
+	  encryptionKey:   samplekey
 
 Retrieve the Google home page and make sure the "I'm Feeling Lucky" button is visible:
 
