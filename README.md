@@ -96,6 +96,14 @@ Supply a username and password for HTTP Basic authentication:
 	  url:             http://localhost:8090/controller/rest/applications
 	  username:        demouser@customer1
 	  password:        welcome
+	  
+Supply a username and encrypted password for HTTP Basic authentication:
+
+	- name:            My Login Page
+	  url:             http://localhost:8090/controller/rest/applications
+	  username:        demouser@customer1
+	  encryptedPassword:        gC9FihggtJ3nTVxRZKQyPA==
+	  encryptionKey:   samplekey
 
 Retrieve the Google home page and make sure the "I'm Feeling Lucky" button is visible:
 
@@ -174,6 +182,8 @@ at the individual site level.
 | **url**     | none          | The url to monitor |
 | **username**| none          | username if url has Basic Authentication |
 | **password**| none          | password if url has Basic Authentication |
+| **encryptedPassword**|none  | encrypted password - use one of **password** or **passwordEncrypted** |
+| **encryptionKey**|none      | key used to encrypt the password|
 | **matchPatterns**| none          | match patterns to search for in the response |
 
 
@@ -201,6 +211,13 @@ The options for the pattern type are:
 - Response Code
 - Status : UNKNOWN(0), CANCELED(1), FAILED(2), ERROR(3), SUCCESS(4)
 
+## Encrypting the password ##
+To avoid setting the clear text password in the config.yml, please follow the process to encrypt the password. Then set encryptionKey and generated password for encryptedPassword in config.yml
+
+1. Download the util jar to encrypt the password from [here] []
+2. Encrypt password from the commandline
+java -cp "appd-exts-commons-1.1.2.jar" com.appdynamics.extensions.crypto.Encryptor encryptionKey myPassword
+3. These values should be used in the encryptedPassword and encryptionKey fields in config.yml
 
 ## Sample Custom Dashboard ##
 ![](https://github.com/Appdynamics/site-monitoring-extension/raw/master/url-monitor-dashboard.png)

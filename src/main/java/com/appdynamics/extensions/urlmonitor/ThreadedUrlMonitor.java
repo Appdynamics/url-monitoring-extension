@@ -9,6 +9,8 @@ import com.appdynamics.extensions.urlmonitor.config.MonitorConfig;
 import com.appdynamics.extensions.urlmonitor.config.ProxyConfig;
 import com.appdynamics.extensions.urlmonitor.config.SiteConfig;
 import com.appdynamics.extensions.yml.YmlReader;
+import com.appdynamics.extensions.crypto.CryptoUtil;
+import com.appdynamics.TaskInputArgs;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
@@ -173,7 +175,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                             .setRealm(new Realm.RealmBuilder()
                                     .setScheme(Realm.AuthScheme.BASIC)
                                     .setPrincipal(site.getUsername())
-                                    .setPassword(site.getPassword())
+                                    .setPassword(getPassword(site.getPassword(), site.getEncryptedPassword(), site.getEncryptionKey()))
                                     .build());
                     if (!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {
                         rb.setBody(readPostRequestFile(site));
@@ -510,6 +512,28 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
         String msg = "Using Monitor Version [" + getImplementationVersion() + "]";
         return msg;
     }
+
+
+    private String getPassword(String password, String encryptedPassword, String encryptionKey) {
+
+        Map<String, String> map = new HashMap<String, String>();
+
+        if (password != null) {
+            log.debug("Using provided password");
+            map.put(TaskInputArgs.PASSWORD, password);
+        }
+
+        if (encryptedPassword != null) {
+            log.debug("Using provided encryptedPassword");
+            map.put(TaskInputArgs.PASSWORD_ENCRYPTED, encryptedPassword);
+            map.put(TaskInputArgs.ENCRYPTION_KEY, encryptionKey);
+        }
+
+        String plainPassword = CryptoUtil.getPassword(map);
+
+        return plainPassword;
+    }
+
 
     private static String getImplementationVersion() {
         return ThreadedUrlMonitor.class.getPackage().getImplementationTitle();
