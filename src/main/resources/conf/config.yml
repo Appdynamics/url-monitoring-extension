@@ -17,24 +17,23 @@ sites:
    - name:     Google
      url:      http://www.google.com
      groupName: MySites
+     authType: BASIC
      matchPatterns:
      - name: LuckyButton
-      type: caseInsensitiveSubstring
-      pattern: Google
+       type: caseInsensitiveSubstring
+       pattern: Google
 
    - name:     AppDynamics
      url:      http://www.appdynamics.com
      authType: BASIC
 
 
-   - name:     File Download
-     url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
-
    - name:     My Controller
      url:      http://localhost:8090/controller
      username: admin
      password: admin
      connectTimeout: 60000
+     authType: BASIC
 
 
 #prefix used to show up metrics in AppDynamics
