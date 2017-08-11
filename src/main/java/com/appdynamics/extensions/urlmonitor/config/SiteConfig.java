@@ -16,6 +16,7 @@ public class SiteConfig extends SiteConfigBase
     private Map<String, String> headers = new HashMap<String, String>();
     private List<MatchPattern> matchPatterns = new ArrayList<MatchPattern>();
     private String requestPayloadFile;
+    private String authType;
 
     public String getName()
     {
@@ -89,6 +90,14 @@ public class SiteConfig extends SiteConfigBase
 
     public void setGroupName(String groupName) {
         this.groupName = groupName;
+    }
+
+    public String getAuthType() {
+        return authType;
+    }
+
+    public void setAuthType(String authType) {
+        this.authType = authType;
     }
 
     @Override

@@ -14,28 +14,27 @@ defaultParams:
 #Sites that need to be monitored
 
 sites:
-
-  - name:     Google
-    url:      http://www.google.com
-    groupName: MySites
-    matchPatterns:
-    - name: LuckyButton
+   - name:     Google
+     url:      http://www.google.com
+     groupName: MySites
+     matchPatterns:
+     - name: LuckyButton
       type: caseInsensitiveSubstring
       pattern: Google
 
-  - name:     AppDynamics
-    url:      http://www.appdynamics.com
-    groupName: MySites
+   - name:     AppDynamics
+     url:      http://www.appdynamics.com
+     authType: BASIC
 
 
-  - name:     File Download
-    url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
+   - name:     File Download
+     url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
 
-  - name:     My Controller
-    url:      http://localhost:8090/controller/rest/applications
-    username: user1@customer1
-    password: welcome
-    connectTimeout: 60000
+   - name:     My Controller
+     url:      http://localhost:8090/controller
+     username: admin
+     password: admin
+     connectTimeout: 60000
 
 
 #prefix used to show up metrics in AppDynamics
