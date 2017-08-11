@@ -3,6 +3,7 @@ package com.appdynamics.extensions.urlmonitor.auth;
 import com.ning.http.client.Realm;
 import com.ning.http.client.Realm.AuthScheme;
 import com.ning.http.client.Realm.RealmBuilder;
+import org.apache.log4j.Logger;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -14,6 +15,8 @@ public class NTLMAuth {
     private String url;
     private String domain;
     private String host;
+
+    private static final Logger log = Logger.getLogger(NTLMAuth.class);
 
     public NTLMAuth(String username, String password, String url) {
         this.username = username;
@@ -83,13 +86,12 @@ public class NTLMAuth {
             }
             int beginIndex = url.indexOf('/');
             int lastIndex = url.lastIndexOf(':');
-       //     System.out.println("URL: "+url);
             if(beginIndex < lastIndex)
                 setDomain(url.substring(url.indexOf('/') + 2, url.lastIndexOf(':')));
             else
                 setDomain("");
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            log.error("Exception while setting host and domain for url " + url, e);
         }
     }
 }
