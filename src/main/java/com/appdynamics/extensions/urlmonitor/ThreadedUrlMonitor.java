@@ -169,12 +169,13 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
         try {
             for (final SiteConfig site : config.getSites()) {
 
+                String authType = site.getAuthType()== null ? "NONE" : site.getAuthType();
                 for (int i = 0; i < site.getNumAttempts(); i++) {
                     RequestBuilder rb = new RequestBuilder()
                             .setMethod(site.getMethod())
                             .setUrl(site.getUrl())
                             .setFollowRedirects(config.getClientConfig().isFollowRedirects())
-                            .setRealm(AuthSchemeFactory.getAuth(AuthTypeEnum.valueOf(site.getAuthType()),site)
+                            .setRealm(AuthSchemeFactory.getAuth(AuthTypeEnum.valueOf(authType),site)
                                     .build());
                     if (!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {
                         rb.setBody(readPostRequestFile(site));
