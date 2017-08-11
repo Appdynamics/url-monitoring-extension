@@ -2,6 +2,8 @@ package com.appdynamics.extensions.urlmonitor;
 
 import com.appdynamics.extensions.PathResolver;
 import com.appdynamics.extensions.urlmonitor.SiteResult.ResultStatus;
+import com.appdynamics.extensions.urlmonitor.auth.AuthSchemeFactory;
+import com.appdynamics.extensions.urlmonitor.auth.AuthTypeEnum;
 import com.appdynamics.extensions.urlmonitor.config.ClientConfig;
 import com.appdynamics.extensions.urlmonitor.config.DefaultSiteConfig;
 import com.appdynamics.extensions.urlmonitor.config.MatchPattern;
@@ -19,7 +21,6 @@ import com.ning.http.client.HttpResponseBodyPart;
 import com.ning.http.client.HttpResponseHeaders;
 import com.ning.http.client.HttpResponseStatus;
 import com.ning.http.client.ProxyServer;
-import com.ning.http.client.Realm;
 import com.ning.http.client.Request;
 import com.ning.http.client.RequestBuilder;
 import com.ning.http.client.Response;
@@ -74,7 +75,8 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 .setRequestTimeout(defaultSiteConfig.getSocketTimeout())
                 .setMaxConnectionsPerHost(clientConfig.getMaxConnPerRoute())
                 .setMaxConnections(clientConfig.getMaxConnTotal())
-                .setUserAgent(clientConfig.getUserAgent());
+                .setUserAgent(clientConfig.getUserAgent())
+                .setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors());
 
         ProxyConfig proxyConfig = defaultSiteConfig.getProxyConfig();
         if (proxyConfig != null) {
@@ -158,6 +160,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 latch.getCount(), config.getSites().length));
 
         setSiteDefaults();
+
         final ConcurrentHashMap<SiteConfig, List<SiteResult>> results = buildResultMap();
         final long overallStartTime = System.currentTimeMillis();
         final AsyncHttpClient client = createHttpClient(config);
@@ -165,15 +168,13 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
         try {
             for (final SiteConfig site : config.getSites()) {
+
                 for (int i = 0; i < site.getNumAttempts(); i++) {
                     RequestBuilder rb = new RequestBuilder()
                             .setMethod(site.getMethod())
                             .setUrl(site.getUrl())
                             .setFollowRedirects(config.getClientConfig().isFollowRedirects())
-                            .setRealm(new Realm.RealmBuilder()
-                                    .setScheme(Realm.AuthScheme.BASIC)
-                                    .setPrincipal(site.getUsername())
-                                    .setPassword(site.getPassword())
+                            .setRealm(AuthSchemeFactory.getAuth(AuthTypeEnum.valueOf(site.getAuthType()),site)
                                     .build());
                     if (!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {
                         rb.setBody(readPostRequestFile(site));
