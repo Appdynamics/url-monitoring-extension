@@ -20,11 +20,14 @@ public class AuthSchemeFactory {
                 BasicAuth basicAuth = new BasicAuth(siteConfig.getUsername(),siteConfig.getPassword());
                 realmBuilder = basicAuth.realmBuilderBase();
                 break;
+            case SSL:
+                SSLCertAuth sslAuth = new SSLCertAuth();
+                realmBuilder = sslAuth.realmBuilderBase();
+                break;
             case NONE:
                 realmBuilder = new Realm.RealmBuilder()
                         .setScheme(Realm.AuthScheme.NONE);
                 break;
-
         }
         return realmBuilder;
     }

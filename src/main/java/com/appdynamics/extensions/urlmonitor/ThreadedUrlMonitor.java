@@ -4,6 +4,7 @@ import com.appdynamics.extensions.PathResolver;
 import com.appdynamics.extensions.urlmonitor.SiteResult.ResultStatus;
 import com.appdynamics.extensions.urlmonitor.auth.AuthSchemeFactory;
 import com.appdynamics.extensions.urlmonitor.auth.AuthTypeEnum;
+import com.appdynamics.extensions.urlmonitor.auth.SSLCertAuth;
 import com.appdynamics.extensions.urlmonitor.config.ClientConfig;
 import com.appdynamics.extensions.urlmonitor.config.DefaultSiteConfig;
 import com.appdynamics.extensions.urlmonitor.config.MatchPattern;
@@ -35,6 +36,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
+import javax.net.ssl.SSLContext;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -62,7 +64,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
         System.out.println(logVersion());
     }
 
-    private AsyncHttpClient createHttpClient(MonitorConfig config) {
+    private AsyncHttpClient createHttpClient(MonitorConfig config, String authType, SSLContext sslContext) {
         DefaultSiteConfig defaultSiteConfig = config.getDefaultParams();
         ClientConfig clientConfig = config.getClientConfig();
 
@@ -76,7 +78,8 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 .setMaxConnectionsPerHost(clientConfig.getMaxConnPerRoute())
                 .setMaxConnections(clientConfig.getMaxConnTotal())
                 .setUserAgent(clientConfig.getUserAgent())
-                .setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors());
+                .setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
+                .setSSLContext(AuthTypeEnum.SSL.name().equalsIgnoreCase(authType)? sslContext : null);
 
         ProxyConfig proxyConfig = defaultSiteConfig.getProxyConfig();
         if (proxyConfig != null) {
@@ -161,21 +164,26 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
         setSiteDefaults();
 
+        AsyncHttpClient client = createHttpClient(config,AuthTypeEnum.NONE.name(),null);
+
         final ConcurrentHashMap<SiteConfig, List<SiteResult>> results = buildResultMap();
         final long overallStartTime = System.currentTimeMillis();
-        final AsyncHttpClient client = createHttpClient(config);
         final Map<String, Integer> groupStatus = new HashMap<String, Integer>();
 
         try {
             for (final SiteConfig site : config.getSites()) {
 
-                String authType = site.getAuthType()== null ? "NONE" : site.getAuthType();
+                if(AuthTypeEnum.SSL.name().equalsIgnoreCase(site.getAuthType())){
+                    System.setProperty("javax.net.ssl.trustStore", site.getTrustStorePath());
+                    System.setProperty("javax.net.ssl.trustStorePassword", site.getTrustStorePassword());
+                    client = createHttpClient(config,AuthTypeEnum.SSL.name(), new SSLCertAuth().getSSLContext(site.getKeyStorePath(), site.getKeyStoreType(), site.getPassword()));
+                }
                 for (int i = 0; i < site.getNumAttempts(); i++) {
                     RequestBuilder rb = new RequestBuilder()
                             .setMethod(site.getMethod())
                             .setUrl(site.getUrl())
                             .setFollowRedirects(config.getClientConfig().isFollowRedirects())
-                            .setRealm(AuthSchemeFactory.getAuth(AuthTypeEnum.valueOf(authType),site)
+                            .setRealm(AuthSchemeFactory.getAuth(AuthTypeEnum.valueOf(site.getAuthType()!=null ? site.getAuthType() : AuthTypeEnum.NONE.name()),site)
                                     .build());
                     if (!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {
                         rb.setBody(readPostRequestFile(site));
