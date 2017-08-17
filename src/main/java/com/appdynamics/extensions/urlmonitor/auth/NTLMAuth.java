@@ -12,15 +12,19 @@ public class NTLMAuth {
 
     private String username;
     private String password;
+    private String encryptedPassword;
+    private String encryptionKey;
     private String url;
     private String domain;
     private String host;
 
     private static final Logger log = Logger.getLogger(NTLMAuth.class);
 
-    public NTLMAuth(String username, String password, String url) {
+    public NTLMAuth(String username, String password, String url, String encryptedPassword, String encryptionKey) {
         this.username = username;
         this.password = password;
+        this.encryptedPassword = encryptedPassword;
+        this.encryptionKey = encryptionKey;
         this.url = url;
     }
 
@@ -56,6 +60,14 @@ public class NTLMAuth {
         this.url = url;
     }
 
+    public String getEncryptedPassword() {
+        return encryptedPassword;
+    }
+
+    public String getEncryptionKey() {
+        return encryptionKey;
+    }
+
     /**
      * Method to create RealmBuilder for NTLM authentication
      * @return
@@ -69,7 +81,7 @@ public class NTLMAuth {
                 .setNtlmDomain(getDomain())
                 .setNtlmHost(getHost())
                 .setPrincipal(getUsername())
-                .setPassword(getPassword());
+                .setPassword(AuthSchemeFactory.getPassword(getPassword(),getEncryptedPassword(),getEncryptionKey()));
     }
 
     /**
