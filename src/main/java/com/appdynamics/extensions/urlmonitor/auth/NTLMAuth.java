@@ -28,6 +28,10 @@ public class NTLMAuth {
         return username;
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     public String getPassword() {
         return password;
     }
@@ -62,7 +66,7 @@ public class NTLMAuth {
      */
     public RealmBuilder realmBuilderBase() {
 
-        setHostAndDomain(getUrl());
+        setHostAndDomain(getUrl(),getUsername());
 
         return new Realm.RealmBuilder()
                 .setScheme(AuthScheme.NTLM)
@@ -76,7 +80,7 @@ public class NTLMAuth {
      * Extracts and sets hostname and domain from the url
      * @param url
      */
-    private void setHostAndDomain(String url) {
+    private void setHostAndDomain(String url, String username) {
         String hostname = null;
         try {
             URI uri = new URI(url);
@@ -84,12 +88,19 @@ public class NTLMAuth {
             if (hostname != null) {
                 setHost(hostname.startsWith("www.") ? hostname.substring(4) : hostname);
             }
-            int beginIndex = url.indexOf('/');
-            int lastIndex = url.lastIndexOf(':');
-            if(beginIndex < lastIndex)
-                setDomain(url.substring(url.indexOf('/') + 2, url.lastIndexOf(':')));
-            else
-                setDomain("");
+            //User can provide domain/username in two separate formats
+            // Either as DOMAIN user or user@DOMAIN
+            int separator1Index = username.indexOf("\\");
+            int separator2Index = username.indexOf("@");
+
+            if(separator1Index>0) {
+                setDomain(username.substring(0, separator1Index));
+                setUsername(username.substring(separator1Index+1));
+            }
+            if(separator2Index>0) {
+                setDomain(username.substring(separator2Index + 1));
+                setUsername(username.substring(0,separator2Index-1));
+            }
         } catch (URISyntaxException e) {
             log.error("Exception while setting host and domain for url " + url, e);
         }
