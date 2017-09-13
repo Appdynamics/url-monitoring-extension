@@ -14,31 +14,37 @@ defaultParams:
 #Sites that need to be monitored
 
 sites:
+   - name:         LocalHost
+     url:          https://localhost:8443
+     password:     password
+     authType:     SSL
+     keyStoreType: SUNX509
+     keyStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
+     keyStorePassword: password
+     trustStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
+     trustStorePassword: password
+
    - name:     Google
      url:      http://www.google.com
      groupName: MySites
-     authType: BASIC
      matchPatterns:
-     - name: LuckyButton
-       type: caseInsensitiveSubstring
-       pattern: Google
+       - name: LuckyButton
+         type: caseInsensitiveSubstring
+         pattern: Google
 
-   - name:     AppDynamics
-     url:      http://www.appdynamics.com
-     authType: BASIC
-
+#   - name:     File Download
+#     url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
 
    - name:     My Controller
      url:      http://localhost:8090/controller
      username: admin
      password: admin
      connectTimeout: 60000
-     authType: BASIC
 
 
 #prefix used to show up metrics in AppDynamics
 #This will create it in specific Tier. Replace
-metricPrefix: Server|Component:<TierID>|Custom Metrics|URLMonitor|
+#metricPrefix: Server|Component:<TierID>|Custom Metrics|URLMonitor|
 #This will create this metric in all the tiers, under this path
-#metricPrefix: Custom Metrics|URLMonitor|
+metricPrefix: Custom Metrics|URLMonitor|
 
