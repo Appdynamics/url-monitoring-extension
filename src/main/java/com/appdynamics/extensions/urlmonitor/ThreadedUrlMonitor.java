@@ -150,7 +150,9 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
             configFilename = taskParams.get(CONFIG_FILE_PARAM);
         }
 
-        config = YmlReader.readFromFile(configFilename, MonitorConfig.class);
+        File file = PathResolver.getFile(configFilename, MonitorConfig.class);
+        config = YmlReader.readFromFile(file, MonitorConfig.class);
+
         if (config == null)
             return null;
 
