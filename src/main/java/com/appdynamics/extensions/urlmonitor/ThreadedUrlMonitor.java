@@ -70,8 +70,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
 
-        builder.setFollowRedirect(clientConfig.isFollowRedirects())
-                .setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
+        builder.setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
                 .setMaxRedirects(clientConfig.getMaxRedirects())
                 .setConnectTimeout(defaultSiteConfig.getConnectTimeout())
                 .setRequestTimeout(defaultSiteConfig.getSocketTimeout())
@@ -183,7 +182,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                     RequestBuilder rb = new RequestBuilder()
                             .setMethod(site.getMethod())
                             .setUrl(site.getUrl())
-                            .setFollowRedirects(config.getClientConfig().isFollowRedirects())
+                            .setFollowRedirects(site.isFollowRedirects())
                             .setRealm(AuthSchemeFactory.getAuth(AuthTypeEnum.valueOf(site.getAuthType()!=null ? site.getAuthType() : AuthTypeEnum.NONE.name()),site)
                                     .build());
                     if (!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {
@@ -206,9 +205,9 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                         rb.addHeader(header.getKey(), header.getValue());
                     }
 
-                    log.info(String.format("Sending %s request %d of %d to %s at %s",
+                    log.info(String.format("Sending %s request %d of %d to %s at %s with redirect allowed as %s",
                             site.getMethod(), (i + 1),
-                            site.getNumAttempts(), site.getName(), site.getUrl()));
+                            site.getNumAttempts(), site.getName(), site.getUrl(), site.isFollowRedirects()));
 
                     final long startTime = System.currentTimeMillis();
                     final Request r = rb.build();
