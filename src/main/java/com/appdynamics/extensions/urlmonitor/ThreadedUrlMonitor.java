@@ -70,8 +70,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
 
-        builder.setFollowRedirect(clientConfig.isFollowRedirects())
-                .setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
+        builder.setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
                 .setMaxRedirects(clientConfig.getMaxRedirects())
                 .setConnectTimeout(defaultSiteConfig.getConnectTimeout())
                 .setRequestTimeout(defaultSiteConfig.getSocketTimeout())
@@ -183,7 +182,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                     RequestBuilder rb = new RequestBuilder()
                             .setMethod(site.getMethod())
                             .setUrl(site.getUrl())
-                            .setFollowRedirects(config.getClientConfig().isFollowRedirects())
+                            .setFollowRedirects(site.isFollowRedirects())
                             .setRealm(AuthSchemeFactory.getAuth(AuthTypeEnum.valueOf(site.getAuthType()!=null ? site.getAuthType() : AuthTypeEnum.NONE.name()),site)
                                     .build());
                     if (!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {

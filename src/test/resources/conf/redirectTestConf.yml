@@ -1,0 +1,32 @@
+clientConfig:
+    maxConnTotal:    1000
+    maxConnPerRoute: 1000
+    ignoreSslErrors: true
+    userAgent:       Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/)
+
+defaultParams:
+    method:          GET
+    socketTimeout:   30000
+    connectTimeout:  30000
+    numAttempts:     1
+
+
+#Sites that need to be monitored
+
+sites:
+
+   - name:       Twitter
+     url:        http://www.twitter.com
+     authType:   BASIC
+     followRedirects: false
+
+
+    # matchPatterns:
+    #    - name:       Error
+    #      type:       substring
+    #      pattern:    Error 400
+
+
+
+#prefix used to show up metrics in AppDynamics
+metricPrefix:  "Custom Metrics|URLMonitor|"

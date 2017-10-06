@@ -24,6 +24,7 @@ public class SiteConfig extends SiteConfigBase
     private String keyStorePassword;
     private String trustStorePath;
     private String trustStorePassword;
+    private boolean followRedirects = true;
 
     public String getName()
     {
@@ -162,6 +163,17 @@ public class SiteConfig extends SiteConfigBase
     public void setTrustStorePassword(String trustStorePassword) {
         this.trustStorePassword = trustStorePassword;
     }
+
+    public boolean isFollowRedirects()
+    {
+        return followRedirects;
+    }
+
+    public void setFollowRedirects(boolean followRedirects)
+    {
+        this.followRedirects = followRedirects;
+    }
+
 
     @Override
     public String toString()

@@ -25,6 +25,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 /**
  * Created by balakrishnavadavalasa on 03/03/16.
  */
+
 public class ThreadedUrlMonitorTest {
 
     private static final String CONFIG_FILE_PARAM = "config-file";
@@ -108,4 +109,12 @@ public class ThreadedUrlMonitorTest {
 
     }
 
+    @Test
+    public void reDirectTest() throws Exception {
+        Map<String, String> taskParams = new HashMap<String, String>();
+        taskParams.put(CONFIG_FILE_PARAM, "src/test/resources/conf/redirectTestConf.yml");
+
+        ThreadedUrlMonitor monitor = new ThreadedUrlMonitor();
+        monitor.execute(taskParams, null);
+    }
 }

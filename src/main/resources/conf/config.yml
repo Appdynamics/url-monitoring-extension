@@ -1,3 +1,4 @@
+# Client level configurations, common across all sites to be monitored
 clientConfig:
     maxConnTotal:    1000
     maxConnPerRoute: 1000
@@ -12,8 +13,44 @@ defaultParams:
 
 
 #Sites that need to be monitored
-
 sites:
+
+     #No authentication, with a pattern to match
+   - name:     Google
+     url:      http://www.google.com
+     followRedirects: false
+     groupName: MySites
+     # Patterns to be matched, multiple patterns(to be matched) can be configured for a given site
+     matchPatterns:
+     - name: LuckyButton
+       type: caseInsensitiveSubstring
+       pattern: Google
+
+   - name:     AppDynamics
+     url:      http://www.appdynamics.com
+     authType: BASIC
+
+   - name:     File Download
+     url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
+
+    # Basic Authentication with password encryption
+   - name:       My Controller
+     url:        https://mycontroller.saas.appdynamics.com/controller/rest/applications
+     username:   demouser@customer1
+     password:   welcome
+     encryptedPassword: "IGVtC9eudmgG8RDjmRjGPQ=="
+     authType: BASIC
+
+     #NTLM Auth Sample Configuration
+   - name:     My Controller
+     url:      http://localhost:8090/controller
+     username: user@DOMAIN
+     password: password
+     authType: NTLM
+     connectTimeout: 60000
+     authType: BASIC
+
+     # Client Cert Auth Sample Configuration
    - name:         LocalHost
      url:          https://localhost:8443
      password:     password
@@ -24,23 +61,30 @@ sites:
      trustStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
      trustStorePassword: password
 
+     #POST request sample configuration
+   - name:     My POST site
+     url:      http://localhost:8293/api/v1/metrics
+     username:
+     password:
+     connectTimeout: 60000
+     method:   POST
+     headers:
+     Content-Type: application/json
+     requestPayloadFile: src/test/resources/conf/postrequestPayloadFile
+     matchPatterns:
+       - name:       Error
+         type:       substring
+         pattern:    Error 400
+
+     #Proxy Configuration
    - name:     Google
      url:      http://www.google.com
      groupName: MySites
-     matchPatterns:
-       - name: LuckyButton
-         type: caseInsensitiveSubstring
-         pattern: Google
-
-#   - name:     File Download
-#     url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
-
-   - name:     My Controller
-     url:      http://localhost:8090/controller
-     username: admin
-     password: admin
-     connectTimeout: 60000
-
+     proxyConfig:
+       host: ""
+       port: ""
+       username: ""
+       password: ""
 
 #prefix used to show up metrics in AppDynamics
 #This will create it in specific Tier. Replace

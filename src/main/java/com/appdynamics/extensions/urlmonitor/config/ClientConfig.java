@@ -7,7 +7,6 @@ public class ClientConfig
     private int maxConnPerRoute = 1000;
     private int threadCount = 10;
     private boolean ignoreSslErrors = false;
-    private boolean followRedirects = true;
     private int maxRedirects = 10;
     private String userAgent = "Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/)";
 
@@ -49,16 +48,6 @@ public class ClientConfig
     public void setIgnoreSslErrors(boolean ignoreSslErrors)
     {
         this.ignoreSslErrors = ignoreSslErrors;
-    }
-
-    public boolean isFollowRedirects()
-    {
-        return followRedirects;
-    }
-
-    public void setFollowRedirects(boolean followRedirects)
-    {
-        this.followRedirects = followRedirects;
     }
 
     public int getMaxRedirects()
