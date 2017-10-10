@@ -27,59 +27,105 @@ Note that the path is relative to `$AGENT_HOME`.
     </task-arguments>
 ```
 
-The main configuration for this extension then lives in a file called `config.yaml`. It uses a simple syntax that anyone can edit with a simple text editor. Here's a sample:
+The main configuration for this extension then lives in a file called `config.yaml`. It uses a simple syntax that anyone can edit with a simple text editor. 
+**Note: Please avoid using tab (\t) when editing yaml files. You may want to validate the yaml file using a [yaml validator](http://yamllint.com/).**
+
+Here's a sample:
 
 ``` yaml
+# Client level configurations, common across all sites to be monitored
 clientConfig:
-    maxConnTotal:             1000
-    maxConnPerRoute:          1000
-    ignoreSslErrors:          true
-    userAgent:                Mozilla/5.0 AppDynamics-UrlMonitor/1.0.6
+    maxConnTotal:    1000
+    maxConnPerRoute: 1000
+    maxRedirects: 10
+    ignoreSslErrors: true
+    userAgent:       Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/)
 
 defaultParams:
-    method:                   HEAD
-    socketTimeout:            30000
-    connectTimeout:           30000
-    numAttempts:              3
-    treatAuthFailedAsError:   true
+    method:          GET
+    socketTimeout:   30000
+    connectTimeout:  30000
+    numAttempts:     1
 
+
+#Sites that need to be monitored
 sites:
 
-- name:       Google
-  url:        http://www.google.com
-  groupName
+     #No authentication, with a pattern to match
+   - name:     Google
+     url:      http://www.google.com
+     followRedirects: false
+     groupName: MySites
+     # Patterns to be matched, multiple patterns(to be matched) can be configured for a given site
+     matchPatterns:
+     - name: LuckyButton
+       type: caseInsensitiveSubstring
+       pattern: Google
 
-- name:       AppDynamics
-  url:        https://www.appdynamics.com
-  
-- name:       My Slow Site
-  url:        http://www.wordpress.com
-  connectTimeout: 60000
+   - name:     AppDynamics
+     url:      http://www.appdynamics.com
+     authType: BASIC
 
-- name:       Help
-  url:        https://help.appdynamics.com
-  proxyConfig:
-      host: www.proxy.appdynamics.com
-      port: 8080 
+   - name:     File Download
+     url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
 
-- name:       My Controller
-  url:        https://mycontroller.saas.appdynamics.com/controller/rest/applications
-  username:   demouser@customer1
-  password:   welcome
-  
-- name:     My POST site
-  url:      http://localhost:8293/api/v1/metrics
-  username:
-  password:
-  connectTimeout: 60000
-  method:   POST
-  headers:
-        Content-Type: application/json
-  requestPayloadFile: src/test/resources/conf/postrequestPayloadFile
-  matchPatterns:
-     - name:       Error
-       type:       substring
-       pattern:    Error 400
+    # Basic Authentication with password encryption
+   - name:       My Controller
+     url:        https://mycontroller.saas.appdynamics.com/controller/rest/applications
+     username:   demouser@customer1
+     password:   welcome
+     encryptedPassword: "IGVtC9eudmgG8RDjmRjGPQ=="
+     authType: BASIC
+
+     #NTLM Auth Sample Configuration
+   - name:     My Controller
+     url:      http://localhost:8090/controller
+     username: user@DOMAIN
+     password: password
+     authType: NTLM
+     connectTimeout: 60000
+     authType: BASIC
+
+     # Client Cert Auth Sample Configuration
+   - name:         LocalHost
+     url:          https://localhost:8443
+     password:     password
+     authType:     SSL
+     keyStoreType: SUNX509
+     keyStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
+     keyStorePassword: password
+     trustStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
+     trustStorePassword: password
+
+     #POST request sample configuration
+   - name:     My POST site
+     url:      http://localhost:8293/api/v1/metrics
+     username:
+     password:
+     connectTimeout: 60000
+     method:   POST
+     headers:
+     Content-Type: application/json
+     requestPayloadFile: src/test/resources/conf/postrequestPayloadFile
+     matchPatterns:
+       - name:       Error
+         type:       substring
+         pattern:    Error 400
+
+     #Proxy Configuration
+   - name:     Google
+     url:      http://www.google.com
+     groupName: MySites
+     proxyConfig:
+       host: ""
+       port: ""
+       username: ""
+       password: ""
+
+#prefix used to show up metrics in AppDynamics. This will create it in specific Tier. Replace
+metricPrefix: Server|Component:<TierID>|Custom Metrics|URLMonitor|
+#This will create this metric in all the tiers, under this path
+#metricPrefix: Custom Metrics|URLMonitor|
 ```
 
 ### Examples ###
@@ -94,6 +140,7 @@ Supply a username and password for HTTP Basic authentication:
 
 	- name:            My Login Page
 	  url:             http://localhost:8090/controller/rest/applications
+    authtype:        BASIC
 	  username:        demouser@customer1
 	  password:        welcome
 
@@ -141,7 +188,6 @@ The **clientConfig** section sets options for the HTTP client library, including
 | **threadCount**     | 10            | Maximum number of Threads spawned to cater HTTP request
 | **ignoreSSlErrors** | false         | Whether to ignore errors in SSL certificate validation or host validation |
 | **userAgent**       | Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/) | Custom User-Agent header to send with requests (can be used to mimic desktop or mobile browsers) |
-| **followRedirects** | true          | Whether the client should follow Redirect responses |
 | **maxRedirects**    | 10            | Maximum redirects 
 
 #### Default Site Section
@@ -172,9 +218,24 @@ at the individual site level.
 | :---------- | :------------ | :----------------- |
 | **name**    | none          | Name of the url with which metric folder that will be created in Metric Browser |
 | **url**     | none          | The url to monitor |
-| **username**| none          | username if url has Basic Authentication |
-| **password**| none          | password if url has Basic Authentication |
+| **followRedirects** | true          | Whether the site should follow Redirect responses |
+| **groupName**     | none          | The group under which site needs to be categorised |
+| **authType**| none          | type of authentication, supported auth are Basic, NTLM, Client Cert |
 | **matchPatterns**| none          | match patterns to search for in the response |
+
+#### Auth Type
+
+| Option Name                | Mandatory | Option Description |
+| :---------- | :------------ | :----------------- |
+| **authType**    | yes          | Name of the authentication type: BASIC, NTLM, ClientCert |
+| **username**| yes          | username|
+| **password**| yes          | password  |
+| **encryptedPassword**| no | encrypted password if using password ecryption |
+| **keyStoreType**| no          | keyStoreType, used only in Client Cert Auth |
+| **keyStorePath**| no          | path to keyStore file, used only in Client Cert Auth |
+| **keyStorePassword**| no      | keyStorePassword, used only in Client Cert Auth |
+| **trustStorePath**| no        | path to trustStore file, used only in Client Cert Auth |
+| **trustStorePassword**| no    | trustStorePassword, used only in Client Cert Auth |
 
 
 ##### Match Pattern Section
@@ -196,10 +257,17 @@ The options for the pattern type are:
 
 ## Metrics Provided ##
 
+In the AppDynamics Metric Browser, URL Monitor's metrics can be seen at: Application Infrastructure Performance | TierID | Custom Metrics | URL Monitor
+
+Following metrics are reported for each site: 
+
 - Average Response time (ms)
+- First Byte Time (ms)
+- Download Time (ms)
 - Response Bytes
 - Response Code
 - Status : UNKNOWN(0), CANCELED(1), FAILED(2), ERROR(3), SUCCESS(4)
+- Responsive Count(Available at GroupName Level)
 
 
 ## Sample Custom Dashboard ##
@@ -209,9 +277,9 @@ The options for the pattern type are:
 
 For any questions or feature requests, please contact the [AppDynamics Center of Excellence][].
 
-**Version:** 1.2.3  
+**Version:** 1.2.6  
 **Controller Compatibility:** 3.7 or later    
-**Last Updated:** 07/28/2016
+**Last Updated:** 09/13/2017
 **Author:** Todd Radel
 
 ## Contributing ##
@@ -225,6 +293,15 @@ Find out more in the [AppDynamics Community][].
 ------------------------------------------------------------------------------
 
 ## Release Notes ##
+
+### Version 1.2.6
+ - Added support for Client Side Cert auth and password encryption
+
+### Version 1.2.5
+ - Added support for NTLM auth and ignoring SSL Cert errors
+
+### Version 1.2.4
+ - Adding groupName to group multiple sites
 
 ### Version 1.2.3
  - Fixed metric drop issue in case of large number of URLs
