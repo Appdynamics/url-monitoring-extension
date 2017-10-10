@@ -61,11 +61,7 @@ sites:
      - name: LuckyButton
        type: caseInsensitiveSubstring
        pattern: Google
-
-   - name:     AppDynamics
-     url:      http://www.appdynamics.com
-     authType: BASIC
-
+       
    - name:     File Download
      url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
 
