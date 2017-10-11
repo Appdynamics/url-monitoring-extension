@@ -8,9 +8,8 @@ This extension requires the Java Machine Agent.
 
 ## Installation ##
 
-1. Download UrlMonitor.zip from the [AppDynamics Community][].
-1. Copy UrlMonitor.zip into the directory where you installed the machine agent, under `$AGENT_HOME/monitors`.
-1. Unzip the file. This will create a new directory called UrlMonitor.
+1. Download and unzip UrlMonitor.zip from the [AppDynamics Community][].
+1. Copy UrlMonitor directory where you installed the machine agent, under `$AGENT_HOME/monitors`.
 1. In `$AGENT_HOME/monitors/UrlMonitor`, edit the configuration files (`monitor.xml` and `config.yaml`) 
    to configure the plugin.
 1. Restart the machine agent.
@@ -61,7 +60,11 @@ sites:
      - name: LuckyButton
        type: caseInsensitiveSubstring
        pattern: Google
-       
+
+   - name:     AppDynamics
+     url:      http://www.appdynamics.com
+     authType: BASIC
+
    - name:     File Download
      url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
 
@@ -71,6 +74,7 @@ sites:
      username:   demouser@customer1
      password:   welcome
      encryptedPassword: "IGVtC9eudmgG8RDjmRjGPQ=="
+     encryptionKey: 
      authType: BASIC
 
      #NTLM Auth Sample Configuration
@@ -173,7 +177,7 @@ POST xml or json payload to any url and search for the patterns in the response
 
 ### Configuration Reference ###
 
-#### Client Section
+#### Client Config
 
 The **clientConfig** section sets options for the HTTP client library, including:
 
@@ -186,7 +190,7 @@ The **clientConfig** section sets options for the HTTP client library, including
 | **userAgent**       | Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/) | Custom User-Agent header to send with requests (can be used to mimic desktop or mobile browsers) |
 | **maxRedirects**    | 10            | Maximum redirects 
 
-#### Default Site Section
+#### Default Params
 
 The **defaultParams** section sets the default options for all sites. These options can then be overriden
 at the individual site level.
@@ -227,6 +231,7 @@ at the individual site level.
 | **username**| yes          | username|
 | **password**| yes          | password  |
 | **encryptedPassword**| no | encrypted password if using password ecryption |
+| **encryptionKey**| no | the key used to encrypt the password |
 | **keyStoreType**| no          | keyStoreType, used only in Client Cert Auth |
 | **keyStorePath**| no          | path to keyStore file, used only in Client Cert Auth |
 | **keyStorePassword**| no      | keyStorePassword, used only in Client Cert Auth |
@@ -251,9 +256,19 @@ The options for the pattern type are:
 | regex | Regular expression match |
 | word | Case-insensitive, but must be surrounded by non-word characters |
 
+
+#### Password Encryption Support
+
+To avoid setting the clear text password in the config.yml, please follow the process to encrypt the password and set the encrypted password and the key in the config.yml
+
+1. Download the util jar to encrypt the password from here
+2. Encrypt password from the commandline
+    java -cp "appd-exts-commons-1.1.2.jar" com.appdynamics.extensions.crypto.Encryptor myKey myPassword
+3. These values should be used in the passwordEncrypted and encryptionKey fields in config.yml
+
 ## Metrics Provided ##
 
-In the AppDynamics Metric Browser, URL Monitor's metrics can be seen at: Application Infrastructure Performance | TierID | Custom Metrics | URL Monitor
+In the AppDynamics Metric Browser, URL Monitor's metrics can be seen at: Application Infrastructure Performance | Tier-ID | Custom Metrics | URL Monitor
 
 Following metrics are reported for each site: 
 
@@ -262,7 +277,7 @@ Following metrics are reported for each site:
 - Download Time (ms)
 - Response Bytes
 - Response Code
-- Status : UNKNOWN(0), CANCELED(1), FAILED(2), ERROR(3), SUCCESS(4)
+- Status : UNKNOWN(0), CANCELLED(1), FAILED(2), ERROR(3), SUCCESS(4)
 - Responsive Count(Available at GroupName Level)
 
 
