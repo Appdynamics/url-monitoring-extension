@@ -84,7 +84,6 @@ sites:
      password: password
      authType: NTLM
      connectTimeout: 60000
-     authType: BASIC
 
      # Client Cert Auth Sample Configuration
    - name:         LocalHost
@@ -105,8 +104,8 @@ sites:
      connectTimeout: 60000
      method:   POST
      headers:
-     Content-Type: application/json
-     requestPayloadFile: src/test/resources/conf/postrequestPayloadFile
+           Content-Type: application/json
+     requestPayloadFile: src/test/resources/conf/postrequestPayloadFile.json
      matchPatterns:
        - name:       Error
          type:       substring
@@ -169,7 +168,7 @@ POST xml or json payload to any url and search for the patterns in the response
         method:   POST
         headers:
               Content-Type: application/json
-        requestPayloadFile: path/to/postrequestPayloadFile
+        requestPayloadFile: path/to/postrequestPayloadFile.json
         matchPatterns:
             - name:       Error
               type:       substring
@@ -181,71 +180,75 @@ POST xml or json payload to any url and search for the patterns in the response
 
 The **clientConfig** section sets options for the HTTP client library, including:
 
-| Option Name         | Default Value | Option Description |
-| :------------------ | :------------ | :----------------- |
-| **maxConnTotal**    | 1000          | Maximum number of simultaneous HTTP connections |
-| **maxConnPerRoute** | 1000          | Maximum number of simultaneous HTTP connections to a single host |
-| **threadCount**     | 10            | Maximum number of Threads spawned to cater HTTP request
-| **ignoreSSlErrors** | false         | Whether to ignore errors in SSL certificate validation or host validation |
-| **userAgent**       | Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/) | Custom User-Agent header to send with requests (can be used to mimic desktop or mobile browsers) |
-| **maxRedirects**    | 10            | Maximum redirects 
+| Option Name         | Default Value | Mandatory| Option Description |
+| :------------------ | :------------ | :------- | :----------------- |
+| **maxConnTotal**    | 1000          | No       |Maximum number of simultaneous HTTP connections |
+| **maxConnPerRoute** | 1000          | No       | Maximum number of simultaneous HTTP connections to a single host |
+| **threadCount**     | 10            | No       | Maximum number of Threads spawned to cater HTTP request
+| **ignoreSSlErrors** | false         | No       | Whether to ignore errors in SSL certificate validation or host validation |
+| **userAgent**       | Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/) | No       | Custom User-Agent header to send with requests (can be used to mimic desktop or mobile browsers) |
+| **maxRedirects**    | 10            | No       | Maximum redirects 
 
 #### Default Params
 
 The **defaultParams** section sets the default options for all sites. These options can then be overriden
 at the individual site level.
 
-| Option Name                | Default Value | Option Description |
-| :------------------------- | :------------ | :----------------- |
-| **method**                 | GET           | HTTP method to use (e.g. GET, POST, HEAD, OPTIONS, etc.). The default is "HEAD", which avoids the overhead of retrieving the entire body of the response, but which prevents the agent from doing pattern matching or reporting the response size. Make sure you set the method to GET if you want these features. |
-| **socketTimeout**          | 30000         | Maximum time to wait for a socket connection to open, in milliseconds |
-| **connectTimeout**         | 30000         | Maximum time to wait for the HTTP handshake, in milliseconds |
-| **numAttempts**            | 1             | Number of times the site will be retrieved. The metrics then reported will be an average over all attempts. |
-| **treatAuthFailedAsError** | true          | If **false**, the extension will report the site status as "SUCCESS" even if authentication fails. |
-| **proxyConfig**            | null          | Specify the host and port of the proxy. |
+| Option Name                | Default Value | Mandatory| Option Description |
+| :------------------------- | :------------ | :--------| :----------------- |
+| **method**                 | GET           | No       | HTTP method to use (e.g. GET, POST, HEAD, OPTIONS, etc.). The default is "HEAD", which avoids the overhead of retrieving the entire body of the response, but which prevents the agent from doing pattern matching or reporting the response size. Make sure you set the method to GET if you want these features. |
+| **socketTimeout**          | 30000         | No       | Maximum time to wait for a socket connection to open, in milliseconds |
+| **connectTimeout**         | 30000         | No       | Maximum time to wait for the HTTP handshake, in milliseconds |
+| **numAttempts**            | 1             | No       | Number of times the site will be retrieved. The metrics then reported will be an average over all attempts. |
+| **treatAuthFailedAsError** | true          | No       | If **false**, the extension will report the site status as "SUCCESS" even if authentication fails. |
+
 
 #### ProxyConfig section
-| Option Name                | Default Value | Option Description |
-| :------------------------- | :------------ | :----------------- |
-| **host**                   | none          | proxy host         |
-| **port**                   | none          | proxy port         |
-| **username**               | none          | proxy username     |
-| **password**               | none          | proxy password     |
+| Option Name                | Default Value | Mandatory| Option Description |
+| :------------------------- | :------------ | :------- | :----------------- |
+| **host**                   | none          | Yes(if proxy config specified)       | proxy host         |
+| **port**                   | none          | Yes(if proxy config specified)       | proxy port         |
+| **username**               | none          | Yes(if proxy config specified)       | proxy username     |
+| **password**               | none          | Yes(if proxy config specified)       | proxy password     |
 
 ### Site Section
 
-| Option Name                | Default Value | Option Description |
-| :---------- | :------------ | :----------------- |
-| **name**    | none          | Name of the url with which metric folder that will be created in Metric Browser |
-| **url**     | none          | The url to monitor |
-| **followRedirects** | true          | Whether the site should follow Redirect responses |
-| **groupName**     | none          | The group under which site needs to be categorised |
-| **authType**| none          | type of authentication, supported auth are Basic, NTLM, Client Cert |
-| **matchPatterns**| none          | match patterns to search for in the response |
+| Option Name                | Default Value | Mandatory| Option Description |
+| :---------- | :------------ | :------- | :----------------- |
+| **name**    | none          | Yes       | Name of the url with which metric folder that will be created in Metric Browser |
+| **url**     | none          | Yes       | The url to monitor |
+| **followRedirects** | true          | No       | Whether the site should follow Redirect responses |
+| **groupName**     | none          | No       | The group under which site needs to be categorised |
+| **authType**| none          | No       | type of authentication, supported auth are Basic, NTLM, Client Cert |
+| **matchPatterns**| none          | No       | Matches the specified patterns in the URL response , and reports the total number of matches count as metric |
+| **proxyConfig**            | null          | No       | Specify the host and port of the proxy. |
+| **headers**            | none          | No       | Component of request header section, e.g.: Content-Type. |
+| **requestPayloadFile**            | none          | No       | Payload file(XML or JSON) to upload to URL. |
+
 
 #### Auth Type
 
-| Option Name                | Mandatory | Option Description |
-| :---------- | :------------ | :----------------- |
-| **authType**    | yes          | Name of the authentication type: BASIC, NTLM, ClientCert |
-| **username**| yes          | username|
-| **password**| yes          | password  |
-| **encryptedPassword**| no | encrypted password if using password ecryption |
-| **encryptionKey**| no | the key used to encrypt the password |
-| **keyStoreType**| no          | keyStoreType, used only in Client Cert Auth |
-| **keyStorePath**| no          | path to keyStore file, used only in Client Cert Auth |
-| **keyStorePassword**| no      | keyStorePassword, used only in Client Cert Auth |
-| **trustStorePath**| no        | path to trustStore file, used only in Client Cert Auth |
-| **trustStorePassword**| no    | trustStorePassword, used only in Client Cert Auth |
+| Option Name                | Default Value | Mandatory | Option Description |
+| :---------- | :------------ | :------------ | :----------------- |
+| **authType**    | NONE         | yes          | Name of the authentication type: BASIC, NTLM, ClientCert |
+| **username**| null          | yes          | username|
+| **password**| null          | yes          | password  |
+| **encryptedPassword**| none          | no | encrypted password if using password ecryption |
+| **encryptionKey**| none          | no | the key used to encrypt the password |
+| **keyStoreType**| none          | no          | keyStoreType, used only in Client Cert Auth |
+| **keyStorePath**| none          | no          | path to keyStore file, used only in Client Cert Auth |
+| **keyStorePassword**| none          | no      | keyStorePassword, used only in Client Cert Auth |
+| **trustStorePath**| none          | no        | path to trustStore file, used only in Client Cert Auth |
+| **trustStorePassword**| none          | no    | trustStorePassword, used only in Client Cert Auth |
 
 
 ##### Match Pattern Section
 
-| Option Name | Default Value | Option Description |
-| :---------- | :------------ | :----------------- |
-| **name**    | none          | Name of the metric folder that will be created in Metric Browser |
-| **pattern** | none          | The string to search for |
-| **type**    | substring     | Can be one of: substring, caseInsensitiveSubstring, regex, or word (see below) |
+| Option Name | Default Value | Mandatory | Option Description |
+| :---------- | :------------ |:----------| :----------------- |
+| **name**    | none          | Yes(if MatchPattern specified)       | Name of the metric folder that will be created in Metric Browser |
+| **pattern** | none          | Yes(if MatchPattern specified)       | The string to search for |
+| **type**    | substring     | Yes(if MatchPattern specified)       | Can be one of: substring, caseInsensitiveSubstring, regex, or word (see below) |
 
 The options for the pattern type are:
 
@@ -257,7 +260,7 @@ The options for the pattern type are:
 | word | Case-insensitive, but must be surrounded by non-word characters |
 
 
-#### Password Encryption Support
+## Password Encryption Support ##
 
 To avoid setting the clear text password in the config.yml, please follow the process to encrypt the password and set the encrypted password and the key in the config.yml
 
@@ -272,13 +275,14 @@ In the AppDynamics Metric Browser, URL Monitor's metrics can be seen at: Applica
 
 Following metrics are reported for each site: 
 
-- Average Response time (ms)
-- First Byte Time (ms)
-- Download Time (ms)
-- Response Bytes
-- Response Code
-- Status : UNKNOWN(0), CANCELLED(1), FAILED(2), ERROR(3), SUCCESS(4)
-- Responsive Count(Available at GroupName Level)
+- Average Response time (ms) ->  The time after the request is sent until the first byte is received back.
+- First Byte Time (ms) -> Time taken from the time the request build has started to receive the first response byte.
+- Download Time (ms) -> Total time taken to receive the entire response from the URL.
+- Response Bytes -> It represents the length of the response returned from the URL.
+- Response Code -> It represents the HTTP status code returned from the URL.
+- Status -> It represents whether the URL is FAILED(2), ERROR(3) or SUCCESS(4).
+         Possible values are: UNKNOWN(0), CANCELLED(1), FAILED(2), ERROR(3), SUCCESS(4)
+- Responsive Count(Available at GroupName Level) -> Number of sites in a given group, that responded successfully.
 
 
 ## Sample Custom Dashboard ##
