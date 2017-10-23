@@ -138,8 +138,8 @@ Increase the timeout threshold for a site that is often slow:
 Supply a username and password for HTTP Basic authentication:
 
 	- name:            My Login Page
-	  url:             "http://localhost:8090/controller/rest/applications"
-          authtype:        BASIC
+	  url:             http://localhost:8090/controller/rest/applications
+	  authtype:        BASIC
 	  username:        demouser@customer1
 	  password:        welcome
 
