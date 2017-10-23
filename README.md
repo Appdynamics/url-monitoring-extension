@@ -242,7 +242,7 @@ at the individual site level.
 | **trustStorePassword**| none          | no    | trustStorePassword, used only in Client Cert Auth |
 
 
-##### Match Pattern Section
+#### Match Pattern Section
 
 | Option Name | Default Value | Mandatory | Option Description |
 | :---------- | :------------ |:----------| :----------------- |
@@ -258,6 +258,10 @@ The options for the pattern type are:
 | caseInsensitiveSubstring | Case-insensitive match on the given string |
 | regex | Regular expression match |
 | word | Case-insensitive, but must be surrounded by non-word characters |
+
+Metrics for match pattern appears under the following path: 
+
+ Site->Pattern Matches -> Name of MatchPattern(As specified in config.yml) -> Count
 
 
 ## Password Encryption Support ##
