@@ -139,7 +139,7 @@ Supply a username and password for HTTP Basic authentication:
 
 	- name:            My Login Page
 	  url:             http://localhost:8090/controller/rest/applications
-	  authtype:        BASIC
+    authtype:        BASIC
 	  username:        demouser@customer1
 	  password:        welcome
 
@@ -203,14 +203,6 @@ at the individual site level.
 | **treatAuthFailedAsError** | true          | No       | If **false**, the extension will report the site status as "SUCCESS" even if authentication fails. |
 
 
-#### ProxyConfig section
-| Option Name                | Default Value | Mandatory| Option Description |
-| :------------------------- | :------------ | :------- | :----------------- |
-| **host**                   | none          | Yes(if proxy config specified)       | proxy host         |
-| **port**                   | none          | Yes(if proxy config specified)       | proxy port         |
-| **username**               | none          | Yes(if proxy config specified)       | proxy username     |
-| **password**               | none          | Yes(if proxy config specified)       | proxy password     |
-
 ### Site Section
 
 | Option Name                | Default Value | Mandatory| Option Description |
@@ -225,14 +217,21 @@ at the individual site level.
 | **headers**            | none          | No       | Component of request header section, e.g.: Content-Type. |
 | **requestPayloadFile**            | none          | No       | Payload file(XML or JSON) to upload to URL. |
 
+#### ProxyConfig section
+| Option Name                | Default Value | Mandatory| Option Description |
+| :------------------------- | :------------ | :------- | :----------------- |
+| **host**                   | none          | Yes(if proxy config specified)       | proxy host         |
+| **port**                   | none          | Yes(if proxy config specified)       | proxy port         |
+| **username**               | none          | Yes(if proxy config specified)       | proxy username     |
+| **password**               | none          | Yes(if proxy config specified)       | proxy password     |
 
 #### Auth Type
 
 | Option Name                | Default Value | Mandatory | Option Description |
 | :---------- | :------------ | :------------ | :----------------- |
-| **authType**    | NONE         | yes          | Name of the authentication type: BASIC, NTLM, ClientCert |
-| **username**| null          | yes          | username|
-| **password**| null          | yes          | password  |
+| **authType**    | NONE         | Yes(if authType is specified)         | Name of the authentication type: BASIC, NTLM, ClientCert |
+| **username**| null          | Yes(if authType is specified)          | username|
+| **password**| null          | Yes(if authType is specified)          | password  |
 | **encryptedPassword**| none          | no | encrypted password if using password ecryption |
 | **encryptionKey**| none          | no | the key used to encrypt the password |
 | **keyStoreType**| none          | no          | keyStoreType, used only in Client Cert Auth |
@@ -259,9 +258,9 @@ The options for the pattern type are:
 | regex | Regular expression match |
 | word | Case-insensitive, but must be surrounded by non-word characters |
 
-Metrics for match pattern appears under the following path: 
+Metrics for match pattern appears under the following path:
 
- Site->Pattern Matches -> Name of MatchPattern(As specified in config.yml) -> Count
+Site->Pattern Matches -> Name of MatchPattern(As specified in config.yml) -> Count
 
 
 ## Password Encryption Support ##
