@@ -141,8 +141,6 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
             setSiteDefaults();
 
-            //AsyncHttpClient client = clientFactory.createHttpClient(config, AuthTypeEnum.NONE.name(),null);
-
             final ConcurrentHashMap<SiteConfig, List<SiteResult>> results = buildResultMap();
             final long overallStartTime = System.currentTimeMillis();
             final Map<String, Integer> groupStatus = new HashMap<String, Integer>();
