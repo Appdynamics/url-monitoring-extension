@@ -4,20 +4,18 @@ import com.appdynamics.extensions.PathResolver;
 import com.appdynamics.extensions.urlmonitor.SiteResult.ResultStatus;
 import com.appdynamics.extensions.urlmonitor.auth.AuthSchemeFactory;
 import com.appdynamics.extensions.urlmonitor.auth.AuthTypeEnum;
-import com.appdynamics.extensions.urlmonitor.auth.SSLCertAuth;
-import com.appdynamics.extensions.urlmonitor.config.ClientConfig;
 import com.appdynamics.extensions.urlmonitor.config.DefaultSiteConfig;
 import com.appdynamics.extensions.urlmonitor.config.MatchPattern;
 import com.appdynamics.extensions.urlmonitor.config.MonitorConfig;
 import com.appdynamics.extensions.urlmonitor.config.ProxyConfig;
 import com.appdynamics.extensions.urlmonitor.config.SiteConfig;
+import com.appdynamics.extensions.urlmonitor.httpClient.ClientFactory;
 import com.appdynamics.extensions.yml.YmlReader;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncHttpClientConfig;
 import com.ning.http.client.HttpResponseBodyPart;
 import com.ning.http.client.HttpResponseHeaders;
 import com.ning.http.client.HttpResponseStatus;
@@ -36,7 +34,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
-import javax.net.ssl.SSLContext;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -60,32 +57,12 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
     private String metricPath = DEFAULT_METRIC_PATH;
     protected MonitorConfig config;
 
+    protected ClientFactory clientFactory = new ClientFactory();
+
     public ThreadedUrlMonitor() {
         System.out.println(logVersion());
     }
 
-    private AsyncHttpClient createHttpClient(MonitorConfig config, String authType, SSLContext sslContext) {
-        DefaultSiteConfig defaultSiteConfig = config.getDefaultParams();
-        ClientConfig clientConfig = config.getClientConfig();
-
-        AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
-
-        builder.setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
-                .setMaxRedirects(clientConfig.getMaxRedirects())
-                .setConnectTimeout(defaultSiteConfig.getConnectTimeout())
-                .setRequestTimeout(defaultSiteConfig.getSocketTimeout())
-                .setMaxConnectionsPerHost(clientConfig.getMaxConnPerRoute())
-                .setMaxConnections(clientConfig.getMaxConnTotal())
-                .setUserAgent(clientConfig.getUserAgent())
-                .setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
-                .setSSLContext(AuthTypeEnum.SSL.name().equalsIgnoreCase(authType)? sslContext : null);
-
-        ProxyConfig proxyConfig = defaultSiteConfig.getProxyConfig();
-        if (proxyConfig != null) {
-            builder.setProxyServer(new ProxyServer(proxyConfig.getHost(), proxyConfig.getPort()));
-        }
-        return new AsyncHttpClient(builder.build());
-    }
 
     private String getConfigFilename(String filename) {
         if (filename == null) {
@@ -144,350 +121,347 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
         if (taskParams != null) {
             log.info(logVersion());
-        String configFilename = DEFAULT_CONFIG_FILE;
-        if (taskParams.containsKey(CONFIG_FILE_PARAM)) {
-            configFilename = taskParams.get(CONFIG_FILE_PARAM);
-        }
+            String configFilename = DEFAULT_CONFIG_FILE;
+            if (taskParams.containsKey(CONFIG_FILE_PARAM)) {
+                configFilename = taskParams.get(CONFIG_FILE_PARAM);
+            }
 
-        File file = PathResolver.getFile(configFilename, MonitorConfig.class);
-        config = YmlReader.readFromFile(file, MonitorConfig.class);
-        if (config == null)
-            return null;
+            File file = PathResolver.getFile(configFilename, MonitorConfig.class);
+            config = YmlReader.readFromFile(file, MonitorConfig.class);
+            if (config == null)
+                return null;
 
-        if (!Strings.isNullOrEmpty(config.getMetricPrefix())) {
-            metricPath = StringUtils.stripEnd(config.getMetricPrefix(), "|");
-        }
+            if (!Strings.isNullOrEmpty(config.getMetricPrefix())) {
+                metricPath = StringUtils.stripEnd(config.getMetricPrefix(), "|");
+            }
 
-        final CountDownLatch latch = new CountDownLatch(config.getTotalAttemptCount());
-        log.info(String.format("Sending %d HTTP requests asynchronously to %d sites",
-                latch.getCount(), config.getSites().length));
+            final CountDownLatch latch = new CountDownLatch(config.getTotalAttemptCount());
+            log.info(String.format("Sending %d HTTP requests asynchronously to %d sites",
+                    latch.getCount(), config.getSites().length));
 
-        setSiteDefaults();
+            setSiteDefaults();
 
-        AsyncHttpClient client = createHttpClient(config,AuthTypeEnum.NONE.name(),null);
+            AsyncHttpClient client = clientFactory.createHttpClient(config, AuthTypeEnum.NONE.name(),null);
 
-        final ConcurrentHashMap<SiteConfig, List<SiteResult>> results = buildResultMap();
-        final long overallStartTime = System.currentTimeMillis();
-        final Map<String, Integer> groupStatus = new HashMap<String, Integer>();
+            final ConcurrentHashMap<SiteConfig, List<SiteResult>> results = buildResultMap();
+            final long overallStartTime = System.currentTimeMillis();
+            final Map<String, Integer> groupStatus = new HashMap<String, Integer>();
 
-        try {
-            for (final SiteConfig site : config.getSites()) {
+            try {
+                for (final SiteConfig site : config.getSites()) {
 
-                if(AuthTypeEnum.SSL.name().equalsIgnoreCase(site.getAuthType())){
-                    System.setProperty("javax.net.ssl.trustStore", site.getTrustStorePath());
-                    System.setProperty("javax.net.ssl.trustStorePassword", site.getTrustStorePassword());
-                    client = createHttpClient(config,AuthTypeEnum.SSL.name(), new SSLCertAuth().getSSLContext(site.getKeyStorePath(), site.getKeyStoreType(), site.getPassword()));
-                }
-                for (int i = 0; i < site.getNumAttempts(); i++) {
-                    RequestBuilder rb = new RequestBuilder()
-                            .setMethod(site.getMethod())
-                            .setUrl(site.getUrl())
-                            .setFollowRedirects(site.isFollowRedirects())
-                            .setRealm(AuthSchemeFactory.getAuth(AuthTypeEnum.valueOf(site.getAuthType()!=null ? site.getAuthType() : AuthTypeEnum.NONE.name()),site)
-                                    .build());
-                    if (!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {
-                        rb.setBody(readPostRequestFile(site));
-                        if (!"post".equalsIgnoreCase(site.getMethod())) {
-                            rb.setMethod("POST");
+                    client = clientFactory.getValidClient(config, site, client);
+
+                    for (int i = 0; i < site.getNumAttempts(); i++) {
+                        RequestBuilder rb = new RequestBuilder()
+                                .setMethod(site.getMethod())
+                                .setUrl(site.getUrl())
+                                .setFollowRedirects(site.isFollowRedirects())
+                                .setRealm(AuthSchemeFactory.getAuth(AuthTypeEnum.valueOf(site.getAuthType()!=null ? site.getAuthType() : AuthTypeEnum.NONE.name()),site)
+                                        .build());
+                        if (!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {
+                            rb.setBody(readPostRequestFile(site));
+                            if (!"post".equalsIgnoreCase(site.getMethod())) {
+                                rb.setMethod("POST");
+                            }
                         }
-                    }
-                    //proxy support
-                    ProxyConfig proxyConfig = site.getProxyConfig();
-                    if (proxyConfig != null) {
-                        if (proxyConfig.getUsername() != null && proxyConfig.getPassword() != null) {
-                            rb.setProxyServer(new ProxyServer(proxyConfig.getHost(), proxyConfig.getPort(), proxyConfig.getUsername(), proxyConfig.getPassword()));
-                        } else {
-                            rb.setProxyServer(new ProxyServer(proxyConfig.getHost(), proxyConfig.getPort()));
-                        }
-                    }
-
-                    for (Map.Entry<String, String> header : site.getHeaders().entrySet()) {
-                        rb.addHeader(header.getKey(), header.getValue());
-                    }
-
-                    log.info(String.format("Sending %s request %d of %d to %s at %s with redirect allowed as %s",
-                            site.getMethod(), (i + 1),
-                            site.getNumAttempts(), site.getName(), site.getUrl(), site.isFollowRedirects()));
-
-                    final long startTime = System.currentTimeMillis();
-                    final Request r = rb.build();
-
-                    final SiteResult result = new SiteResult();
-                    result.setStatus(ResultStatus.SUCCESS);
-
-                    final ByteArrayOutputStream body = new ByteArrayOutputStream();
-
-                    client.executeRequest(r, new AsyncCompletionHandler<Response>() {
-
-                        private void finish(SiteResult result) {
-                            results.get(site)
-                                    .add(result);
-                            latch.countDown();
-                            printMetricsForRequestCompleted(results.get(site), site);
-                            log.info(latch.getCount() + " requests remaining");
+                        //proxy support
+                        ProxyConfig proxyConfig = site.getProxyConfig();
+                        if (proxyConfig != null) {
+                            if (proxyConfig.getUsername() != null && proxyConfig.getPassword() != null) {
+                                rb.setProxyServer(new ProxyServer(proxyConfig.getHost(), proxyConfig.getPort(), proxyConfig.getUsername(), proxyConfig.getPassword()));
+                            } else {
+                                rb.setProxyServer(new ProxyServer(proxyConfig.getHost(), proxyConfig.getPort()));
+                            }
                         }
 
-                        private void printMetricsForRequestCompleted(List<SiteResult> results, SiteConfig site) {
-                            String myMetricPath = metricPath + "|" + site.getName();
-                            int resultCount = results.size();
+                        for (Map.Entry<String, String> header : site.getHeaders().entrySet()) {
+                            rb.addHeader(header.getKey(), header.getValue());
+                        }
 
-                            long totalFirstByteTime = 0;
-                            long totalDownloadTime = 0;
-                            long totalElapsedTime = 0;
-                            int statusCode = 0;
-                            long responseSize = 0;
-                            //int availability = 0;
-                            HashMap<String, Integer> matches = null;
-                            SiteResult.ResultStatus status = SiteResult.ResultStatus.UNKNOWN;
-                            for (SiteResult result : results) {
-                                status = result.getStatus();
-                                statusCode = result.getResponseCode();
+                        log.info(String.format("Sending %s request %d of %d to %s at %s with redirect allowed as %s",
+                                site.getMethod(), (i + 1),
+                                site.getNumAttempts(), site.getName(), site.getUrl(), site.isFollowRedirects()));
+
+                        final long startTime = System.currentTimeMillis();
+                        final Request r = rb.build();
+
+                        final SiteResult result = new SiteResult();
+                        result.setStatus(ResultStatus.SUCCESS);
+
+                        final ByteArrayOutputStream body = new ByteArrayOutputStream();
+
+                        client.executeRequest(r, new AsyncCompletionHandler<Response>() {
+
+                            private void finish(SiteResult result) {
+                                results.get(site)
+                                        .add(result);
+                                latch.countDown();
+                                printMetricsForRequestCompleted(results.get(site), site);
+                                log.info(latch.getCount() + " requests remaining");
+                            }
+
+                            private void printMetricsForRequestCompleted(List<SiteResult> results, SiteConfig site) {
+                                String myMetricPath = metricPath + "|" + site.getName();
+                                int resultCount = results.size();
+
+                                long totalFirstByteTime = 0;
+                                long totalDownloadTime = 0;
+                                long totalElapsedTime = 0;
+                                int statusCode = 0;
+                                long responseSize = 0;
+                                //int availability = 0;
+                                HashMap<String, Integer> matches = null;
+                                SiteResult.ResultStatus status = SiteResult.ResultStatus.UNKNOWN;
+                                for (SiteResult result : results) {
+                                    status = result.getStatus();
+                                    statusCode = result.getResponseCode();
                                 /*if(statusCode == 200) {
                                     availability = 1;
                                 }*/
-                                responseSize = result.getResponseBytes();
-                                totalFirstByteTime += result.getFirstByteTime();
-                                totalDownloadTime += result.getDownloadTime();
-                                totalElapsedTime += result.getTotalTime();
-                                matches = result.getMatches();
-                            }
-
-                            long averageFirstByteTime = totalFirstByteTime / resultCount;
-                            long averageDownloadTime = totalDownloadTime / resultCount;
-                            long averageElapsedTime = totalElapsedTime / resultCount;
-
-                            log.info(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
-                                    site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
-
-
-                            if (!Strings.isNullOrEmpty(site.getGroupName())) {
-                                myMetricPath = metricPath + "|" + site.getGroupName() + "|" + site.getName();
-
-                                if (statusCode == 200) {
-
-                                    Integer count = groupStatus.get(site.getGroupName());
-
-                                    if (count == null) {
-                                        groupStatus.put(site.getGroupName(), 1);
-                                    } else {
-                                        groupStatus.put(site.getGroupName(), ++count);
-                                    }
+                                    responseSize = result.getResponseBytes();
+                                    totalFirstByteTime += result.getFirstByteTime();
+                                    totalDownloadTime += result.getDownloadTime();
+                                    totalElapsedTime += result.getTotalTime();
+                                    matches = result.getMatches();
                                 }
-                            }
 
-                            printMetricWithValue(myMetricPath + "|Average Response Time (ms)", Long.toString(averageElapsedTime));
-                            printMetricWithValue(myMetricPath + "|Download Time (ms)", Long.toString(averageDownloadTime));
-                            printMetricWithValue(myMetricPath + "|First Byte Time (ms)", Long.toString(averageFirstByteTime));
-                            printMetricWithValue(myMetricPath + "|Response Code", Integer.toString(statusCode));
-                            printMetricWithValue(myMetricPath + "|Status", Long.toString(status.ordinal()));
-                            printMetricWithValue(myMetricPath + "|Response Bytes", Long.toString(responseSize));
-                            //printMetricWithValue(myMetricPath + "|Availability", Integer.toString(availability));
+                                long averageFirstByteTime = totalFirstByteTime / resultCount;
+                                long averageDownloadTime = totalDownloadTime / resultCount;
+                                long averageElapsedTime = totalElapsedTime / resultCount;
+
+                                log.info(String.format("Results for site '%s': count=%d, total=%d ms, average=%d ms, respCode=%d, bytes=%d, status=%s",
+                                        site.getName(), resultCount, totalFirstByteTime, averageFirstByteTime, statusCode, responseSize, status));
 
 
-                            myMetricPath += "|Pattern Matches";
-                            if (matches != null) {
-                                for (Map.Entry<String, Integer> match : matches.entrySet()) {
-                                    getMetricWriter(myMetricPath + "|" + match.getKey() + "|Count",
-                                            MetricWriter.METRIC_AGGREGATION_TYPE_SUM,
-                                            MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
-                                            MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
-                                            Long.toString(match.getValue()));
-                                }
-                            }
+                                if (!Strings.isNullOrEmpty(site.getGroupName())) {
+                                    myMetricPath = metricPath + "|" + site.getGroupName() + "|" + site.getName();
 
-                        }
+                                    if (statusCode == 200) {
 
-                        @Override
-                        public STATE onStatusReceived(HttpResponseStatus status) throws Exception {
+                                        Integer count = groupStatus.get(site.getGroupName());
 
-                            result.setFirstByteTime(System.currentTimeMillis() - startTime);
-                            result.setResponseCode(status.getStatusCode());
-                            log.debug(String.format("[%s] First byte received in %d ms",
-                                    site.getName(),
-                                    result.getFirstByteTime()));
-
-                            if (status.getStatusCode() == 200) {
-                                log.info(String.format("[%s] %s %s -> %d %s",
-                                        site.getName(),
-                                        site.getMethod(),
-                                        site.getUrl(),
-                                        status.getStatusCode(),
-                                        status.getStatusText()));
-                                return STATE.CONTINUE;
-                            } else if (status.getStatusCode() == 401 && !site.isTreatAuthFailedAsError()) {
-                                log.info(String.format("[%s] %s %s -> %d %s [but OK]",
-                                        site.getName(),
-                                        site.getMethod(),
-                                        site.getUrl(),
-                                        status.getStatusCode(),
-                                        status.getStatusText()));
-                                return STATE.CONTINUE;
-                            }
-
-                            log.warn(String.format("[%s] %s %s -> %d %s",
-                                    site.getName(),
-                                    site.getMethod(),
-                                    site.getUrl(),
-                                    status.getStatusCode(),
-                                    status.getStatusText()));
-                            result.setStatus(ResultStatus.ERROR);
-
-                            return STATE.ABORT;
-                        }
-
-                        @Override
-                        public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
-                            for (Map.Entry<String, List<String>> entry : headers.getHeaders().entrySet()) {
-                                for (String value : entry.getValue()) {
-                                    body.write(entry.getKey().getBytes());
-                                    body.write(':');
-                                    body.write(' ');
-                                    body.write(value.getBytes());
-                                    body.write('\n');
-                                }
-                            }
-                            body.write("\n\n".getBytes());
-
-                            long headerTime = System.currentTimeMillis() - startTime;
-                            log.debug(String.format("[%s] Headers received in %d ms",
-                                    site.getName(), headerTime));
-
-                            return STATE.CONTINUE;
-                        }
-
-                        @Override
-                        public STATE onBodyPartReceived(HttpResponseBodyPart content) throws Exception {
-                            content.writeTo(body);
-                            return STATE.CONTINUE;
-                        }
-
-                        private int getStringMatchCount(String text, String pattern) {
-                            return StringUtils.countMatches(text, pattern);
-                        }
-
-                        private int getRegexMatchCount(String text, String pattern) {
-
-                            Pattern regexPattern = Pattern.compile(pattern);
-                            Matcher regexMatcher = regexPattern.matcher(text);
-
-                            int matchCount = 0;
-                            while (regexMatcher.find()) {
-                                matchCount += 1;
-                            }
-
-                            return matchCount;
-                        }
-
-                        @Override
-                        public Response onCompleted(Response response) throws Exception {
-
-                            if (result.getStatus() == ResultStatus.SUCCESS) {
-
-                                result.setDownloadTime(System.currentTimeMillis() - (startTime + result.getFirstByteTime()));
-                                result.setTotalTime(System.currentTimeMillis() - startTime);
-
-                                String responseBody = body.toString();
-                                result.setResponseBytes(responseBody.length());
-                                log.info(String.format("[%s] Download time was %d ms for %d bytes",
-                                        site.getName(),
-                                        result.getDownloadTime(),
-                                        result.getResponseBytes()));
-
-                                if (site.getMatchPatterns().size() > 0) {
-
-                                    for (MatchPattern pattern : site.getMatchPatterns()) {
-                                        MatchPattern.PatternType type = MatchPattern.PatternType.fromString(pattern.getType());
-                                        log.debug(String.format("[%s] Checking for a %s match against '%s'",
-                                                site.getName(),
-                                                pattern.getType(),
-                                                pattern.getPattern()));
-
-                                        int matchCount;
-                                        switch (type) {
-                                            case SUBSTRING:
-                                                matchCount = getStringMatchCount(responseBody,
-                                                        pattern.getPattern());
-                                                break;
-                                            case CASE_INSENSITIVE_SUBSTRING:
-                                                matchCount = getStringMatchCount(responseBody.toLowerCase(),
-                                                        pattern.getPattern().toLowerCase());
-                                                break;
-                                            case REGEX:
-                                                matchCount = getRegexMatchCount(responseBody,
-                                                        pattern.getPattern());
-                                                break;
-                                            case WORD:
-                                                matchCount = getRegexMatchCount(responseBody,
-                                                        "(?i)\\b" + pattern.getPattern() + "\\b");
-                                                break;
-
-                                            default:
-                                                throw new IllegalArgumentException("Unknown pattern type: " + pattern.getType());
+                                        if (count == null) {
+                                            groupStatus.put(site.getGroupName(), 1);
+                                        } else {
+                                            groupStatus.put(site.getGroupName(), ++count);
                                         }
+                                    }
+                                }
 
-                                        log.info(String.format("[%s] Match count for %s pattern '%s' = %d ",
-                                                site.getName(),
-                                                pattern.getType(),
-                                                pattern.getPattern(),
-                                                matchCount));
-                                        result.getMatches().put(pattern.getName(), matchCount);
+                                printMetricWithValue(myMetricPath + "|Average Response Time (ms)", Long.toString(averageElapsedTime));
+                                printMetricWithValue(myMetricPath + "|Download Time (ms)", Long.toString(averageDownloadTime));
+                                printMetricWithValue(myMetricPath + "|First Byte Time (ms)", Long.toString(averageFirstByteTime));
+                                printMetricWithValue(myMetricPath + "|Response Code", Integer.toString(statusCode));
+                                printMetricWithValue(myMetricPath + "|Status", Long.toString(status.ordinal()));
+                                printMetricWithValue(myMetricPath + "|Response Bytes", Long.toString(responseSize));
+                                //printMetricWithValue(myMetricPath + "|Availability", Integer.toString(availability));
+
+
+                                myMetricPath += "|Pattern Matches";
+                                if (matches != null) {
+                                    for (Map.Entry<String, Integer> match : matches.entrySet()) {
+                                        getMetricWriter(myMetricPath + "|" + match.getKey() + "|Count",
+                                                MetricWriter.METRIC_AGGREGATION_TYPE_SUM,
+                                                MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
+                                                MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
+                                                Long.toString(match.getValue()));
                                     }
                                 }
 
                             }
 
-                            log.info(String.format("[%s] Request completed in %d ms",
-                                    site.getName(),
-                                    result.getTotalTime()));
-                            finish(result);
+                            @Override
+                            public STATE onStatusReceived(HttpResponseStatus status) throws Exception {
 
-                            return response;
-                        }
+                                result.setFirstByteTime(System.currentTimeMillis() - startTime);
+                                result.setResponseCode(status.getStatusCode());
+                                log.debug(String.format("[%s] First byte received in %d ms",
+                                        site.getName(),
+                                        result.getFirstByteTime()));
 
-                        @Override
-                        public void onThrowable(Throwable t) {
-                            log.error(site.getUrl() + " -> FAILED: " + t.getMessage(), t);
-                            finish(new SiteResult(ResultStatus.FAILED));
-                        }
-                    });
+                                if (status.getStatusCode() == 200) {
+                                    log.info(String.format("[%s] %s %s -> %d %s",
+                                            site.getName(),
+                                            site.getMethod(),
+                                            site.getUrl(),
+                                            status.getStatusCode(),
+                                            status.getStatusText()));
+                                    return STATE.CONTINUE;
+                                } else if (status.getStatusCode() == 401 && !site.isTreatAuthFailedAsError()) {
+                                    log.info(String.format("[%s] %s %s -> %d %s [but OK]",
+                                            site.getName(),
+                                            site.getMethod(),
+                                            site.getUrl(),
+                                            status.getStatusCode(),
+                                            status.getStatusText()));
+                                    return STATE.CONTINUE;
+                                }
+
+                                log.warn(String.format("[%s] %s %s -> %d %s",
+                                        site.getName(),
+                                        site.getMethod(),
+                                        site.getUrl(),
+                                        status.getStatusCode(),
+                                        status.getStatusText()));
+                                result.setStatus(ResultStatus.ERROR);
+
+                                return STATE.ABORT;
+                            }
+
+                            @Override
+                            public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
+                                for (Map.Entry<String, List<String>> entry : headers.getHeaders().entrySet()) {
+                                    for (String value : entry.getValue()) {
+                                        body.write(entry.getKey().getBytes());
+                                        body.write(':');
+                                        body.write(' ');
+                                        body.write(value.getBytes());
+                                        body.write('\n');
+                                    }
+                                }
+                                body.write("\n\n".getBytes());
+
+                                long headerTime = System.currentTimeMillis() - startTime;
+                                log.debug(String.format("[%s] Headers received in %d ms",
+                                        site.getName(), headerTime));
+
+                                return STATE.CONTINUE;
+                            }
+
+                            @Override
+                            public STATE onBodyPartReceived(HttpResponseBodyPart content) throws Exception {
+                                content.writeTo(body);
+                                return STATE.CONTINUE;
+                            }
+
+                            private int getStringMatchCount(String text, String pattern) {
+                                return StringUtils.countMatches(text, pattern);
+                            }
+
+                            private int getRegexMatchCount(String text, String pattern) {
+
+                                Pattern regexPattern = Pattern.compile(pattern);
+                                Matcher regexMatcher = regexPattern.matcher(text);
+
+                                int matchCount = 0;
+                                while (regexMatcher.find()) {
+                                    matchCount += 1;
+                                }
+
+                                return matchCount;
+                            }
+
+                            @Override
+                            public Response onCompleted(Response response) throws Exception {
+
+                                if (result.getStatus() == ResultStatus.SUCCESS) {
+
+                                    result.setDownloadTime(System.currentTimeMillis() - (startTime + result.getFirstByteTime()));
+                                    result.setTotalTime(System.currentTimeMillis() - startTime);
+
+                                    String responseBody = body.toString();
+                                    result.setResponseBytes(responseBody.length());
+                                    log.info(String.format("[%s] Download time was %d ms for %d bytes",
+                                            site.getName(),
+                                            result.getDownloadTime(),
+                                            result.getResponseBytes()));
+
+                                    if (site.getMatchPatterns().size() > 0) {
+
+                                        for (MatchPattern pattern : site.getMatchPatterns()) {
+                                            MatchPattern.PatternType type = MatchPattern.PatternType.fromString(pattern.getType());
+                                            log.debug(String.format("[%s] Checking for a %s match against '%s'",
+                                                    site.getName(),
+                                                    pattern.getType(),
+                                                    pattern.getPattern()));
+
+                                            int matchCount;
+                                            switch (type) {
+                                                case SUBSTRING:
+                                                    matchCount = getStringMatchCount(responseBody,
+                                                            pattern.getPattern());
+                                                    break;
+                                                case CASE_INSENSITIVE_SUBSTRING:
+                                                    matchCount = getStringMatchCount(responseBody.toLowerCase(),
+                                                            pattern.getPattern().toLowerCase());
+                                                    break;
+                                                case REGEX:
+                                                    matchCount = getRegexMatchCount(responseBody,
+                                                            pattern.getPattern());
+                                                    break;
+                                                case WORD:
+                                                    matchCount = getRegexMatchCount(responseBody,
+                                                            "(?i)\\b" + pattern.getPattern() + "\\b");
+                                                    break;
+
+                                                default:
+                                                    throw new IllegalArgumentException("Unknown pattern type: " + pattern.getType());
+                                            }
+
+                                            log.info(String.format("[%s] Match count for %s pattern '%s' = %d ",
+                                                    site.getName(),
+                                                    pattern.getType(),
+                                                    pattern.getPattern(),
+                                                    matchCount));
+                                            result.getMatches().put(pattern.getName(), matchCount);
+                                        }
+                                    }
+
+                                }
+
+                                log.info(String.format("[%s] Request completed in %d ms",
+                                        site.getName(),
+                                        result.getTotalTime()));
+                                finish(result);
+
+                                return response;
+                            }
+
+                            @Override
+                            public void onThrowable(Throwable t) {
+                                log.error(site.getUrl() + " -> FAILED: " + t.getMessage(), t);
+                                finish(new SiteResult(ResultStatus.FAILED));
+                            }
+                        });
+                    }
                 }
+
+                latch.await();
+                client.close();
+
+                final long overallElapsedTime = System.currentTimeMillis() - overallStartTime;
+
+                getMetricWriter(metricPath + "|Requests Sent",
+                        MetricWriter.METRIC_AGGREGATION_TYPE_SUM,
+                        MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
+                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
+                        Long.toString(config.getTotalAttemptCount()));
+                getMetricWriter(metricPath + "|Elapsed Time (ms)",
+                        MetricWriter.METRIC_AGGREGATION_TYPE_SUM,
+                        MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
+                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
+                        Long.toString(overallElapsedTime));
+                for (Map.Entry entry : groupStatus.entrySet()) {
+                    String metricName = metricPath + "|" + entry.getKey() + "|Responsive Site Count";
+                    Integer metricValue = groupStatus.get(entry.getKey());
+
+                    printMetricWithValue(metricName, String.valueOf(
+                            metricValue), MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
+                            MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
+                            MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE);
+                }
+
+                log.info("All requests completed in " + overallElapsedTime + " ms");
+            } catch (Exception ex) {
+                log.error("Error in HTTP client: " + ex.getMessage(), ex);
+                throw new TaskExecutionException(ex);
+            } finally {
+                client.close();
             }
 
-            latch.await();
-            client.close();
-
-            final long overallElapsedTime = System.currentTimeMillis() - overallStartTime;
-
-            getMetricWriter(metricPath + "|Requests Sent",
-                    MetricWriter.METRIC_AGGREGATION_TYPE_SUM,
-                    MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
-                    MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
-                    Long.toString(config.getTotalAttemptCount()));
-            getMetricWriter(metricPath + "|Elapsed Time (ms)",
-                    MetricWriter.METRIC_AGGREGATION_TYPE_SUM,
-                    MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
-                    MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
-                    Long.toString(overallElapsedTime));
-            for (Map.Entry entry : groupStatus.entrySet()) {
-                String metricName = metricPath + "|" + entry.getKey() + "|Responsive Site Count";
-                Integer metricValue = groupStatus.get(entry.getKey());
-
-                printMetricWithValue(metricName, String.valueOf(
-                        metricValue), MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
-                        MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
-                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE);
-            }
-
-            log.info("All requests completed in " + overallElapsedTime + " ms");
-        } catch (Exception ex) {
-            log.error("Error in HTTP client: " + ex.getMessage(), ex);
-            throw new TaskExecutionException(ex);
-        } finally {
-            client.close();
+            return new TaskOutput("Success");
         }
-
-        return new TaskOutput("Success");
-    }
         throw new TaskExecutionException("Threaded URL Monitoring completed with failures.");
     }
 
