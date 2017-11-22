@@ -8,6 +8,7 @@ import com.appdynamics.extensions.urlmonitor.config.DefaultSiteConfig;
 import com.appdynamics.extensions.urlmonitor.config.MatchPattern;
 import com.appdynamics.extensions.urlmonitor.config.MonitorConfig;
 import com.appdynamics.extensions.urlmonitor.config.ProxyConfig;
+import com.appdynamics.extensions.urlmonitor.config.RequestConfig;
 import com.appdynamics.extensions.urlmonitor.config.SiteConfig;
 import com.appdynamics.extensions.urlmonitor.httpClient.ClientFactory;
 import com.appdynamics.extensions.yml.YmlReader;
@@ -15,7 +16,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import com.ning.http.client.AsyncCompletionHandler;
-import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.HttpResponseBodyPart;
 import com.ning.http.client.HttpResponseHeaders;
 import com.ning.http.client.HttpResponseStatus;
@@ -141,16 +141,18 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
             setSiteDefaults();
 
-            AsyncHttpClient client = clientFactory.createHttpClient(config, AuthTypeEnum.NONE.name(),null);
+            //AsyncHttpClient client = clientFactory.createHttpClient(config, AuthTypeEnum.NONE.name(),null);
 
             final ConcurrentHashMap<SiteConfig, List<SiteResult>> results = buildResultMap();
             final long overallStartTime = System.currentTimeMillis();
             final Map<String, Integer> groupStatus = new HashMap<String, Integer>();
 
-            try {
-                for (final SiteConfig site : config.getSites()) {
+            List<RequestConfig> requestConfigList = RequestConfig.setClientForSite(config, config.getSites());
 
-                    client = clientFactory.getValidClient(config, site, client);
+            try {
+                for (final RequestConfig requestConfig : requestConfigList) {
+
+                    final SiteConfig site = requestConfig.getSiteConfig();
 
                     for (int i = 0; i < site.getNumAttempts(); i++) {
                         RequestBuilder rb = new RequestBuilder()
@@ -191,7 +193,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
                         final ByteArrayOutputStream body = new ByteArrayOutputStream();
 
-                        client.executeRequest(r, new AsyncCompletionHandler<Response>() {
+                        requestConfig.getClient().executeRequest(r, new AsyncCompletionHandler<Response>() {
 
                             private void finish(SiteResult result) {
                                 results.get(site)
@@ -415,6 +417,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                                         result.getTotalTime()));
                                 finish(result);
 
+
                                 return response;
                             }
 
@@ -428,7 +431,6 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 }
 
                 latch.await();
-                client.close();
 
                 final long overallElapsedTime = System.currentTimeMillis() - overallStartTime;
 
@@ -442,6 +444,11 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                         MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
                         MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
                         Long.toString(overallElapsedTime));
+                getMetricWriter(metricPath + "|Monitored Sites Count",
+                        MetricWriter.METRIC_AGGREGATION_TYPE_SUM,
+                        MetricWriter.METRIC_TIME_ROLLUP_TYPE_SUM,
+                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE).printMetric(
+                        Long.toString(config.getSitesCount()));
                 for (Map.Entry entry : groupStatus.entrySet()) {
                     String metricName = metricPath + "|" + entry.getKey() + "|Responsive Site Count";
                     Integer metricValue = groupStatus.get(entry.getKey());
@@ -457,7 +464,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 log.error("Error in HTTP client: " + ex.getMessage(), ex);
                 throw new TaskExecutionException(ex);
             } finally {
-                client.close();
+                RequestConfig.closeClients(requestConfigList);
             }
 
             return new TaskOutput("Success");
