@@ -10,7 +10,6 @@ import com.appdynamics.extensions.urlmonitor.config.MonitorConfig;
 import com.appdynamics.extensions.urlmonitor.config.ProxyConfig;
 import com.appdynamics.extensions.urlmonitor.config.RequestConfig;
 import com.appdynamics.extensions.urlmonitor.config.SiteConfig;
-import com.appdynamics.extensions.urlmonitor.httpClient.ClientFactory;
 import com.appdynamics.extensions.yml.YmlReader;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
@@ -57,7 +56,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
     private String metricPath = DEFAULT_METRIC_PATH;
     protected MonitorConfig config;
 
-    protected ClientFactory clientFactory = new ClientFactory();
+    protected RequestConfig requestConfig = new RequestConfig();
 
     public ThreadedUrlMonitor() {
         System.out.println(logVersion());
@@ -128,11 +127,14 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
 
             File file = PathResolver.getFile(configFilename, MonitorConfig.class);
             config = YmlReader.readFromFile(file, MonitorConfig.class);
-            if (config == null)
+            if (config == null) {
+                log.debug("Config created was null, returning without executing the monitor.");
                 return null;
-
+            }
             if (!Strings.isNullOrEmpty(config.getMetricPrefix())) {
                 metricPath = StringUtils.stripEnd(config.getMetricPrefix(), "|");
+                log.debug("Metric Path from config: " + metricPath);
+
             }
 
             final CountDownLatch latch = new CountDownLatch(config.getTotalAttemptCount());
@@ -145,7 +147,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
             final long overallStartTime = System.currentTimeMillis();
             final Map<String, Integer> groupStatus = new HashMap<String, Integer>();
 
-            List<RequestConfig> requestConfigList = RequestConfig.setClientForSite(config, config.getSites());
+            List<RequestConfig> requestConfigList = requestConfig.setClientForSite(config, config.getSites());
 
             try {
                 for (final RequestConfig requestConfig : requestConfigList) {
@@ -462,7 +464,7 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                 log.error("Error in HTTP client: " + ex.getMessage(), ex);
                 throw new TaskExecutionException(ex);
             } finally {
-                RequestConfig.closeClients(requestConfigList);
+                requestConfig.closeClients(requestConfigList);
             }
 
             return new TaskOutput("Success");
