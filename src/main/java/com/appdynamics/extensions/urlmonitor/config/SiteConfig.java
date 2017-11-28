@@ -1,4 +1,6 @@
-package com.appdynamics.extensions.urlmonitor.config;
+    package com.appdynamics.extensions.urlmonitor.config;
+
+import com.appdynamics.extensions.urlmonitor.auth.AuthTypeEnum;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +20,7 @@ public class SiteConfig extends SiteConfigBase
     private Map<String, String> headers = new HashMap<String, String>();
     private List<MatchPattern> matchPatterns = new ArrayList<MatchPattern>();
     private String requestPayloadFile;
-    private String authType;
+    private String authType = AuthTypeEnum.NONE.name();
     private String keyStoreType;
     private String keyStorePath;
     private String keyStorePassword;

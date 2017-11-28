@@ -53,6 +53,11 @@ public class MonitorConfig
         return total;
     }
 
+    public int getSitesCount(){
+        return sites.length;
+
+    }
+
     public String getMetricPrefix() {
         return metricPrefix;
     }

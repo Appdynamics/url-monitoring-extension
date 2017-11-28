@@ -1,5 +1,4 @@
 build/
-test/
 target/
 .settings
 .classpath
