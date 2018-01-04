@@ -492,7 +492,6 @@ public class ThreadedUrlMonitor extends AManagedMonitor {
                     aggregationType,
                     rollupType,
                     clusterRollupType);
-            System.out.println(metricWriter);
             metricWriter.printMetric(metricValue);
         }
     }
