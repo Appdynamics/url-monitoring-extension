@@ -5,7 +5,7 @@
 	"description" : "An AppDynamics Machine Agent extension to visit a set of URLs and report whether they are up or down.",
 	"version" : "1.1.1",
 	"downloadLink" : "https://github.com/Appdynamics/url-monitoring-extension/releases/download/v1.1.1/UrlMonitor.zip",
-	"imageLink" : "https://no-cache.appdynamics-static.com/appsphere/logos/urlpinger_128.png",
+	"imageLink" : "https:///www.appdynamics.com/media/uploaded-images/1439426087/.thumbnails/urlpinger_128-52x0.png",
 	"defaultConfigs" : [
 		{
 			"name" : "monitor.xml",
