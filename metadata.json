@@ -1,5 +1,5 @@
 {
-	"id" : "url-monitoring-extension",
+	"id" : "url-monitor",
 	"type" : "monitor",
 	"displayName" : "Url Monitor Extension",
 	"description" : "An AppDynamics Machine Agent extension to visit a set of URLs and report whether they are up or down.",
