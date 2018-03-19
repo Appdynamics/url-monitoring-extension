@@ -139,7 +139,7 @@ Supply a username and password for HTTP Basic authentication:
 
 	- name:            My Login Page
 	  url:             http://localhost:8090/controller/rest/applications
-    authtype:        BASIC
+    	  authType:        BASIC
 	  username:        demouser@customer1
 	  password:        welcome
 
