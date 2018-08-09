@@ -2,6 +2,8 @@ clientConfig:
     maxConnTotal:    1000
     maxConnPerRoute: 1000
     ignoreSslErrors: true
+    #Comma separated list of enabled protocols
+    enabledProtocols: TLSv1,TLSv1.2,TLSv1.1
     userAgent:       Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/)
 
 defaultParams:
