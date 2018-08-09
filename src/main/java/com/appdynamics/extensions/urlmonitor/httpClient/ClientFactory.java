@@ -12,6 +12,8 @@ import com.appdynamics.extensions.urlmonitor.config.ClientConfig;
 import com.appdynamics.extensions.urlmonitor.config.DefaultSiteConfig;
 import com.appdynamics.extensions.urlmonitor.config.MonitorConfig;
 import com.appdynamics.extensions.urlmonitor.config.ProxyConfig;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
 import com.ning.http.client.ProxyServer;
@@ -39,6 +41,9 @@ public class ClientFactory {
         DefaultSiteConfig defaultSiteConfig = config.getDefaultParams();
         ClientConfig clientConfig = config.getClientConfig();
 
+        String[] enabledProtocols = Iterables.toArray(Splitter.on(',').trimResults()
+                                             .omitEmptyStrings().split(clientConfig.getEnabledProtocols()), String.class);
+
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
         try {
             builder.setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
@@ -49,6 +54,7 @@ public class ClientFactory {
                     .setMaxConnections(clientConfig.getMaxConnTotal())
                     .setUserAgent(clientConfig.getUserAgent())
                     .setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
+                    .setEnabledProtocols(enabledProtocols)
                     .setSSLContext(AuthTypeEnum.SSL.name().equalsIgnoreCase(authType) ? sslContext : null);
 
             ProxyConfig proxyConfig = defaultSiteConfig.getProxyConfig();

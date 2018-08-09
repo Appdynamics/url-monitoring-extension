@@ -15,6 +15,7 @@ public class ClientConfig
     private int threadCount = 10;
     private boolean ignoreSslErrors = false;
     private int maxRedirects = 10;
+    private String enabledProtocols;
     private String userAgent = "Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/)";
 
     public int getThreadCount()
@@ -71,6 +72,13 @@ public class ClientConfig
 
     public void setUserAgent(String userAgent) { this.userAgent = userAgent; }
 
+    public String getEnabledProtocols() {
+        return enabledProtocols;
+    }
+
+    public void setEnabledProtocols(String enabledProtocols) {
+        this.enabledProtocols = enabledProtocols;
+    }
 
     @Override
     public String toString()
