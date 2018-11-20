@@ -55,7 +55,7 @@ public class RequestConfig {
                 if (site.getAuthType().equalsIgnoreCase(AuthTypeEnum.SSL.name())) {
                     System.setProperty("javax.net.ssl.trustStore", site.getTrustStorePath());
                     System.setProperty("javax.net.ssl.trustStorePassword", site.getTrustStorePassword());
-                    SSLContext sslContext = new SSLCertAuth().getSSLContext(site.getKeyStorePath(), site.getKeyStoreType(), site.getPassword());
+                    SSLContext sslContext = new SSLCertAuth().getSSLContext(site.getKeyStorePath(), site.getKeyStoreType(), site.getKeyStorePassword());
                     requestConfig.setClient(new ClientFactory().createHttpClient(config, AuthTypeEnum.SSL.name(), sslContext));
                 } else {
                     if (defaultClient == null || defaultClient.isClosed()) {

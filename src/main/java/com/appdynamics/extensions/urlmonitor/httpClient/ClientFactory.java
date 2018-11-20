@@ -41,8 +41,6 @@ public class ClientFactory {
         DefaultSiteConfig defaultSiteConfig = config.getDefaultParams();
         ClientConfig clientConfig = config.getClientConfig();
 
-        String[] enabledProtocols = Iterables.toArray(Splitter.on(',').trimResults()
-                                             .omitEmptyStrings().split(clientConfig.getEnabledProtocols()), String.class);
 
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
         try {
@@ -54,9 +52,14 @@ public class ClientFactory {
                     .setMaxConnections(clientConfig.getMaxConnTotal())
                     .setUserAgent(clientConfig.getUserAgent())
                     .setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
-                    .setEnabledProtocols(enabledProtocols)
                     .setSSLContext(AuthTypeEnum.SSL.name().equalsIgnoreCase(authType) ? sslContext : null);
 
+            if(clientConfig.getEnabledProtocols()!=null) {
+                String[] enabledProtocols = Iterables.toArray(Splitter.on(',').trimResults()
+                        .omitEmptyStrings().split(clientConfig.getEnabledProtocols()), String.class);
+
+                builder.setEnabledProtocols(enabledProtocols);
+            }
             ProxyConfig proxyConfig = defaultSiteConfig.getProxyConfig();
             if (proxyConfig != null) {
                 builder.setProxyServer(new ProxyServer(proxyConfig.getHost(), proxyConfig.getPort()));
