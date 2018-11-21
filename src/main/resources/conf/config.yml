@@ -3,6 +3,8 @@ clientConfig:
     maxConnTotal:    1000
     maxConnPerRoute: 1000
     ignoreSslErrors: true
+    #Comma separated list of enabled protocols
+    #enabledProtocols:TLSv1,TLSv1.2,TLSv1.1
     userAgent:       Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/)
 
 defaultParams:
@@ -69,8 +71,8 @@ sites:
      connectTimeout: 60000
      method:   POST
      headers:
-     Content-Type: application/json
-     requestPayloadFile: src/test/resources/conf/postrequestPayloadFile
+       Content-Type: application/json
+       requestPayloadFile: src/test/resources/conf/postrequestPayloadFile
      matchPatterns:
        - name:       Error
          type:       substring
@@ -81,8 +83,8 @@ sites:
      url:      http://www.google.com
      groupName: MySites
      proxyConfig:
-       host: ""
-       port: ""
+       host: "localhost"
+       port: 80
        username: ""
        password: ""
 
