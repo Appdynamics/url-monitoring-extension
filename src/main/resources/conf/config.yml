@@ -68,6 +68,7 @@ sites:
      url:      http://localhost:8293/api/v1/metrics
      username:
      password:
+     usePreemptiveAuth: true
      connectTimeout: 60000
      method:   POST
      headers:

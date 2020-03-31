@@ -22,6 +22,7 @@ public class SiteConfig extends SiteConfigBase
     private String url;
     private String username;
     private String password;
+    private boolean usePreemptiveAuth = false;
     private String encryptedPassword;
     private String encryptionKey;
     private Map<String, String> headers = new HashMap<String, String>();
@@ -77,12 +78,22 @@ public class SiteConfig extends SiteConfigBase
 
     public String getPassword()
     {
-        return password;
+    	return password;
+    }
+    
+    public boolean getUsePreemptiveAuth()
+    {
+        return usePreemptiveAuth;
     }
 
     public void setPassword(String password)
     {
-        this.password = password;
+    	this.password = password;
+    }
+    
+    public void setUsePreemptiveAuth(boolean usePreemptiveAuth)
+    {
+        this.usePreemptiveAuth = usePreemptiveAuth;
     }
 
     public String getEncryptedPassword() {

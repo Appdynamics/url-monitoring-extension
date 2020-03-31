@@ -29,7 +29,7 @@ public class AuthSchemeFactory {
                 realmBuilder = ntlmAuth.realmBuilderBase();
                 break;
             case BASIC:
-                BasicAuth basicAuth = new BasicAuth(siteConfig.getUsername(),siteConfig.getPassword(),siteConfig.getEncryptedPassword(), siteConfig.getEncryptionKey());
+                BasicAuth basicAuth = new BasicAuth(siteConfig.getUsername(),siteConfig.getPassword(),siteConfig.getEncryptedPassword(), siteConfig.getEncryptionKey(), siteConfig.getUsePreemptiveAuth());
                 realmBuilder = basicAuth.realmBuilderBase();
                 break;
             case SSL:

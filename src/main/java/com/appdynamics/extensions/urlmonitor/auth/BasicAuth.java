@@ -15,12 +15,14 @@ public class BasicAuth {
     private String password;
     private String encryptedPassword;
     private String encryptionKey;
+    private boolean usePreemptiveAuth;
 
-    public BasicAuth(String username, String password, String encryptedPassword, String encryptionKey) {
+    public BasicAuth(String username, String password, String encryptedPassword, String encryptionKey, boolean usePreemptiveAuth) {
         this.username = username;
         this.password = password;
         this.encryptedPassword = encryptedPassword;
         this.encryptionKey = encryptionKey;
+        this.usePreemptiveAuth = usePreemptiveAuth;
     }
 
     public String getUsername() {
@@ -36,12 +38,17 @@ public class BasicAuth {
     }
 
     public String getEncryptionKey() {
-        return encryptionKey;
+    	return encryptionKey;
+    }
+    
+    public boolean getUsePreemptiveAuth() {
+        return usePreemptiveAuth;
     }
 
     public Realm.RealmBuilder realmBuilderBase() {
         return new Realm.RealmBuilder()
                 .setScheme(Realm.AuthScheme.BASIC)
+                .setUsePreemptiveAuth(getUsePreemptiveAuth())
                 .setPrincipal(getUsername())
                 .setPassword(AuthSchemeFactory.getPassword(getPassword(),getEncryptedPassword(),getEncryptionKey()));
     }
