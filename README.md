@@ -101,6 +101,7 @@ sites:
      url:      http://localhost:8293/api/v1/metrics
      username:
      password:
+     usePreemptiveAuth: true
      connectTimeout: 60000
      method:   POST
      headers:
@@ -239,7 +240,7 @@ at the individual site level.
 | **keyStorePassword**| none          | no      | keyStorePassword, used only in Client Cert Auth |
 | **trustStorePath**| none          | no        | path to trustStore file, used only in Client Cert Auth |
 | **trustStorePassword**| none          | no    | trustStorePassword, used only in Client Cert Auth |
-
+| **usePreemptiveAuth**| false          | no    | true if preemptive authentication is required |
 
 #### Match Pattern Section
 
