@@ -7,9 +7,9 @@
 
 package com.appdynamics.extensions.urlmonitor.auth;
 
+
 import com.appdynamics.extensions.urlmonitor.config.SiteConfig;
-import com.appdynamics.extensions.crypto.CryptoUtil;
-import com.appdynamics.TaskInputArgs;
+import com.appdynamics.extensions.util.CryptoUtils;
 import com.ning.http.client.Realm;
 
 import java.util.HashMap;
@@ -46,15 +46,15 @@ public class AuthSchemeFactory {
 
     public static String getPassword(String password, String encryptedPassword, String encryptionKey) {
 
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         if (password != null) {
-            map.put(TaskInputArgs.PASSWORD, password);
+            map.put("password", password);
         }
         if (encryptedPassword != null) {
-            map.put(TaskInputArgs.PASSWORD_ENCRYPTED, encryptedPassword);
-            map.put(TaskInputArgs.ENCRYPTION_KEY, encryptionKey);
+            map.put("encryptedPassword", encryptedPassword);
+            map.put("encryptionKey", encryptionKey);
         }
-        String plainPassword = CryptoUtil.getPassword(map);
-               return plainPassword;
+        String plainPassword = CryptoUtils.getPassword(map);
+        return plainPassword;
     }
 }

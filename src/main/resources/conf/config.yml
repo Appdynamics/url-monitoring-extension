@@ -1,3 +1,11 @@
+# Use this only if SIM is enabled
+#metricPrefix: "Custom Metrics|URL Monitor|"
+
+# If SIM is not enabled, then use this
+metricPrefix: "Server|Component:<TIER_ID>|Custom Metrics|URL Monitor|"
+#To find the <COMPONENT_ID> in your environment,
+#please follow the screenshot https://docs.appdynamics.com/display/PRO42/Build+a+Monitoring+Extension+Using+Java
+
 # Client level configurations, common across all sites to be monitored
 clientConfig:
     maxConnTotal:    1000
@@ -13,10 +21,8 @@ defaultParams:
     connectTimeout:  30000
     numAttempts:     1
 
-
 #Sites that need to be monitored
 sites:
-
      #No authentication, with a pattern to match
    - name:     Google
      url:      http://www.google.com
@@ -35,22 +41,12 @@ sites:
    - name:     File Download
      url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
 
-    # Basic Authentication with password encryption
-   - name:       My Controller
-     url:        https://mycontroller.saas.appdynamics.com/controller/rest/applications
-     username:   demouser@customer1
-     password:   welcome
-     encryptedPassword: "IGVtC9eudmgG8RDjmRjGPQ=="
-     authType: BASIC
-
-     #NTLM Auth Sample Configuration
+  #NTLM Auth Sample Configuration
    - name:     My Controller
      url:      http://localhost:8090/controller
      username: user@DOMAIN
      password: password
      authType: NTLM
-     connectTimeout: 60000
-     authType: BASIC
 
      # Client Cert Auth Sample Configuration
    - name:         LocalHost
@@ -88,9 +84,65 @@ sites:
        username: ""
        password: ""
 
-#prefix used to show up metrics in AppDynamics
-#This will create it in specific Tier. Replace
-metricPrefix: Server|Component:<TIER NAME OR TIER ID>|Custom Metrics|URLMonitor|
-#This will create this metric in all the tiers, under this path
-#metricPrefix: Custom Metrics|URLMonitor|
 
+metricConfig:
+
+   - name: "Average Response Time (ms)"
+     alias: "Average Response Time (ms)"
+     aggregationType: "AVERAGE"
+     timeRollUpType: "AVERAGE"
+     clusterRollUpType: "INDIVIDUAL"
+
+   - name: "Download Time (ms)"
+     alias: "Download Time (ms)"
+     aggregationType: "AVERAGE"
+     timeRollUpType: "AVERAGE"
+     clusterRollUpType: "INDIVIDUAL"
+
+   - name: "First Byte Time (ms)"
+     alias: "First Byte Time (ms)"
+     aggregationType: "AVERAGE"
+     timeRollUpType: "AVERAGE"
+     clusterRollUpType: "INDIVIDUAL"
+
+   - name: "Response Code"
+     alias: "Response Code"
+     aggregationType: "AVERAGE"
+     timeRollUpType: "AVERAGE"
+     clusterRollUpType: "INDIVIDUAL"
+
+   - name: "Status"
+     alias: "Status"
+     aggregationType: "AVERAGE"
+     timeRollUpType: "AVERAGE"
+     clusterRollUpType: "INDIVIDUAL"
+
+   - name: "Response Bytes"
+     alias: "Response Bytes"
+     aggregationType: "AVERAGE"
+     timeRollUpType: "AVERAGE"
+     clusterRollUpType: "INDIVIDUAL"
+
+
+# number of concurrent tasks
+numberOfThreads: 2
+
+# If any of the following fields are not set, the values of the specific fields are set from the system properties of the corresponding fields as specified in the comments.
+# If the system properties are not set for the field, then the data is retrieved from machine agent configFile. Please refer to ControllerInfoFactory for more details.
+# Values provided here can be overridden if the same field is configured in either controller-info.xml or system properties.
+controllerInfo:
+  controllerHost: ""  # -Dappdynamics.controller.hostName
+  controllerPort:  # -Dappdynamics.controller.port
+  controllerSslEnabled: false # -Dappdynamics.controller.ssl.enabled
+  enableOrchestration: false # N/A
+  uniqueHostId: "" # -Dappdynamics.agent.uniqueHostId
+  username: "admin" # -Dappdynamics.agent.monitors.controller.username
+  password: "" # -Dappdynamics.agent.monitors.controller.password
+  encryptedPassword: "j+0oxTzUtw2xAdaq4UUq/Q==" # -Dappdynamics.agent.monitors.controller.encryptedPassword
+  accountAccessKey: "" # -Dappdynamics.agent.accountAccessKey
+  account: "" # -Dappdynamics.agent.accountName
+  machinePath: "" # -Dappdynamics.machine.agent.hierarchyPath
+  simEnabled: false # -Dappdynamics.sim.enabled
+  applicationName: "" # -Dappdynamics.agent.applicationName
+  tierName: "" # -Dappdynamics.agent.tierName
+  nodeName: "" # -Dappdynamics.agent.nodeName

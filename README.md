@@ -1,28 +1,33 @@
 URL Monitor for AppDynamics
 ===========================
 
-An AppDynamics Machine Agent extension to visit a set of URLs and report whether they are up or down (and optionally 
-whether certain text patterns appear on those pages).
+This extension works only with the standalone machine agent. It has been tested against various URLs with different authentication mechanisms.
 
-This extension requires the Java Machine Agent.
+# Use Case
 
-## Installation ##
+The URL monitoring extension gathers metrics and sends them to the AppDynamics Metric Browser.
 
-1. Download and unzip UrlMonitor.zip from the [AppDynamics Community][].
-1. Copy UrlMonitor directory where you installed the machine agent, under `$AGENT_HOME/monitors`.
-1. In `$AGENT_HOME/monitors/UrlMonitor`, edit the configuration files (`monitor.xml` and `config.yaml`) 
-   to configure the plugin.
-1. Restart the machine agent.
+## Pre-requisites
+Before the extension is installed, the prerequisites mentioned [here](https://community.appdynamics.com/t5/Knowledge-Base/Extensions-Prerequisites-Guide/ta-p/35213) need to be met. Please do not proceed with the extension installation if the specified prerequisites are not met.
 
-## Configuration ##
+## Installation
+
+1. To build from source, clone this repository and run 'mvn clean install'. This will produce a UrlMonitor-VERSION.zip in the target directory. Alternatively, download the latest release archive from [Github](https://github.com/Appdynamics/url-monitoring-extension/releases)
+2. Unzip URLMonitor.zip and copy the 'UrlMonitor' directory to `<MACHINE_AGENT_HOME>/monitors/`
+3. Configure the extension by referring to the below section.
+4. Restart the Machine Agent. 
+ 
+In the AppDynamics Metric Browser, look for: Application Infrastructure Performance  | \<Tier\> | Custom Metrics | URLMonitor (or the custom path you specified).
+
+## Configuration
 
 Every AppDynamics extension has a `monitor.xml` file that configures the extension. In this case, the `monitor.xml`
-for this extension just has a single option: the path where the extension can find the main `config.yaml` file. 
+for this extension just has a single option: the path where the extension can find the main `config.yml` file. 
 Note that the path is relative to `$AGENT_HOME`.
 
 ``` xml
     <task-arguments>
-      <argument name="config-file" is-required="true" default-value="monitors/UrlMonitor/config.yaml" />
+      <argument name="config-file" is-required="true" default-value="monitors/UrlMonitor/config.yml" />
     </task-arguments>
 ```
 
@@ -31,7 +36,7 @@ The main configuration for this extension then lives in a file called `config.ya
 
 Here's a sample:
 
-``` yaml
+``` yml
 # Client level configurations, common across all sites to be monitored
 clientConfig:
     maxConnTotal:    1000
@@ -127,7 +132,7 @@ metricPrefix: Server|Component:<TierID>|Custom Metrics|URLMonitor|
 #metricPrefix: Custom Metrics|URLMonitor|
 ```
 
-### Examples ###
+### Examples
 
 Increase the timeout threshold for a site that is often slow:
 
@@ -174,7 +179,7 @@ POST xml or json payload to any url and search for the patterns in the response
               type:       substring
               pattern:    Error 400
 
-### Configuration Reference ###
+### Configuration Reference
 
 #### Client Config
 
@@ -262,16 +267,6 @@ Metrics for match pattern appears under the following path:
 
 Site->Pattern Matches -> Name of MatchPattern(As specified in config.yml) -> Count
 
-
-## Password Encryption Support ##
-
-To avoid setting the clear text password in the config.yml, please follow the process to encrypt the password and set the encrypted password and the key in the config.yml
-
-1. Download the util jar to encrypt the password from here
-2. Encrypt password from the commandline
-    java -cp "appd-exts-commons-1.1.2.jar" com.appdynamics.extensions.crypto.Encryptor myKey myPassword
-3. These values should be used in the passwordEncrypted and encryptionKey fields in config.yml
-
 ## Metrics Provided ##
 
 In the AppDynamics Metric Browser, URL Monitor's metrics can be seen at: Application Infrastructure Performance | Tier-ID | Custom Metrics | URL Monitor
@@ -288,76 +283,41 @@ Following metrics are reported for each site:
 - Responsive Count(Available at GroupName Level) -> Number of sites in a given group, that responded successfully.
 
 
-## Sample Custom Dashboard ##
-![](https://github.com/Appdynamics/site-monitoring-extension/raw/master/url-monitor-dashboard.png)
+## Credentials Encryption
+Please visit [this page](https://community.appdynamics.com/t5/Knowledge-Base/How-to-use-Password-Encryption-with-Extensions/ta-p/29397) to get detailed instructions on password encryption. The steps in this document will guide you through the whole process.
 
-## Support ##
+## Extensions Workbench
+Workbench is an inbuilt feature provided with each extension in order to assist you to fine tune the extension setup before you actually deploy it on the controller. Please review the following document on [How to use the Extensions WorkBench](https://community.appdynamics.com/t5/Knowledge-Base/How-to-use-the-Extensions-WorkBench/ta-p/30130)
 
-For any questions or feature requests, please contact the [AppDynamics Center of Excellence][].
+## Troubleshooting
+Please follow the steps listed in this [troubleshooting-document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-troubleshoot-missing-custom-metrics-or-extensions-metrics/ta-p/28695) in order to troubleshoot your issue. These are a set of common issues that customers might have faced during the installation of the extension. If these don't solve your issue, please follow the last step on the [troubleshooting-document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-troubleshoot-missing-custom-metrics-or-extensions-metrics/ta-p/28695) to contact the support team.
 
-**Version:** 1.2.6  
-**Controller Compatibility:** 3.7 or later    
-**Last Updated:** 09/13/2017
-**Author:** Todd Radel
+## Support Tickets
+If after going through the [Troubleshooting Document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-troubleshoot-missing-custom-metrics-or-extensions-metrics/ta-p/28695) you have not been able to get your extension working, please file a ticket and add the following information.
 
-## Contributing ##
+Please provide the following in order for us to assist you better.
 
-Always feel free to fork and contribute any changes directly via [GitHub][].
+    1. Stop the running machine agent.
+    2. Delete all existing logs under <MachineAgent>/logs.
+    3. Please enable debug logging by editing the file <MachineAgent>/conf/logging/log4j.xml. Change the level value of the following <logger> elements to debug.
+        <logger name="com.singularity">
+        <logger name="com.appdynamics">
+    4. Start the machine agent and please let it run for 10 mins. Then zip and upload all the logs in the directory <MachineAgent>/logs/*.
+    5. Attach the zipped <MachineAgent>/conf/* directory here.
+    6. Attach the zipped <MachineAgent>/monitors/ExtensionFolderYouAreHavingIssuesWith directory here.
 
-## Community ##
-
-Find out more in the [AppDynamics Community][].
-
-------------------------------------------------------------------------------
-
-## Release Notes ##
-
-### Version 1.2.6
- - Added support for Client Side Cert auth and password encryption
-
-### Version 1.2.5
- - Added support for NTLM auth and ignoring SSL Cert errors
-
-### Version 1.2.4
- - Adding groupName to group multiple sites
-
-### Version 1.2.3
- - Fixed metric drop issue in case of large number of URLs
-
-### Version 1.2.2
- - Corrected issues with ignoreSSLErrors functionality.
-
-### Version 1.2.1
- - Added POST functionality.
-
-### Version 1.1.0
- - Added pattern matching against the retrieved pages.
-
-### Version 1.0.6
- - Version bump
-
-### Version 1.0.5
- - Added metadata for new extension repository.
-
-### Version 1.0.4
- - Rebranded as url-monitoring-extension.
-
-### Version 1.0.3
- - Added new config option `treatAuthFailedAsError`. If false, then 401 errors will be expected and treated as
-   "OK" result. 
- 
-### Version 1.0.2
- - Replaced Apache HTTP Component library with Ning Async HTTP Client.
- 
-### Version 1.0.1
- - Added support for self-signed SSL certificates.
-
-### Version 1.0
- - Initial release to AppSphere.
+For any support related questions, you can also contact help@appdynamics.com.
 
 
+## Contributing
 
-[GitHub]: https://github.com/Appdynamics/url-monitoring-extension
-[AppDynamics Community]: https://www.appdynamics.com/community/exchange/
-[AppDynamics Center of Excellence]: mailto:help@appdynamics.com
+Always feel free to fork and contribute any changes directly here on [GitHub](https://github.com/Appdynamics/url-monitoring-extension/).
+
+## Version
+|          Name            |  Version   |
+|--------------------------|------------|
+|Extension Version         |2.0.0       |
+|Controller Compatibility  |4.5 or Later|
+|Machine Agent Version     |4.5.13+     |
+|Last Update               |05/28/2020  |
 
