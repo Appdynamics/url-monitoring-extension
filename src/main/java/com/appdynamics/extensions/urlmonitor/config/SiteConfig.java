@@ -22,6 +22,7 @@ public class SiteConfig extends SiteConfigBase
     private String url;
     private String username;
     private String password;
+    private boolean usePreemptiveAuth = false;
     private String encryptedPassword;
     private String encryptionKey;
     private Map<String, String> headers = new HashMap<String, String>();
@@ -181,6 +182,16 @@ public class SiteConfig extends SiteConfigBase
     public void setFollowRedirects(boolean followRedirects)
     {
         this.followRedirects = followRedirects;
+    }
+
+    public boolean getUsePreemptiveAuth()
+    {
+        return usePreemptiveAuth;
+    }
+
+    public void setUsePreemptiveAuth(boolean usePreemptiveAuth)
+    {
+        this.usePreemptiveAuth = usePreemptiveAuth;
     }
 
 

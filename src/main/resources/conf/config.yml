@@ -43,6 +43,7 @@ sites:
      url:        https://mycontroller.saas.appdynamics.com/controller/rest/applications
      username:   demouser@customer1
      password:   welcome
+     encryptionKey: ""
      encryptedPassword: "IGVtC9eudmgG8RDjmRjGPQ=="
      authType: BASIC
 
@@ -73,6 +74,7 @@ sites:
      username:
      password:
      connectTimeout: 60000
+     usePreemptiveAuth: true
      method:   POST
      headers:
        Content-Type: application/json
