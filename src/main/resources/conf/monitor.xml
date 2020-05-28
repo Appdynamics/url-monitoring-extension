@@ -24,7 +24,7 @@
                 </task-arguments>
                 <java-task>
                         <classpath>url-monitoring-extension.jar</classpath>
-                        <impl-class>com.appdynamics.extensions.urlmonitor.ThreadedUrlMonitor</impl-class>
+                        <impl-class>com.appdynamics.extensions.urlmonitor.URLMonitor</impl-class>
                 </java-task>
         </monitor-run-task>
 </monitor>

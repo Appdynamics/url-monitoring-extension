@@ -8,7 +8,8 @@
 package com.appdynamics.extensions.urlmonitor;
 
 import com.appdynamics.extensions.urlmonitor.auth.AuthTypeEnum;
-import com.appdynamics.extensions.urlmonitor.config.MonitorConfig;
+import com.appdynamics.extensions.urlmonitor.config.ClientConfig;
+import com.appdynamics.extensions.urlmonitor.config.DefaultSiteConfig;
 import com.appdynamics.extensions.urlmonitor.config.RequestConfig;
 import com.appdynamics.extensions.urlmonitor.config.SiteConfig;
 import com.appdynamics.extensions.urlmonitor.httpClient.ClientFactory;
@@ -24,9 +25,7 @@ import javax.net.ssl.SSLContext;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.*;
 
 public class RequestConfigTest {
 
@@ -36,49 +35,53 @@ public class RequestConfigTest {
     ClientFactory clientFactory;
     AsyncHttpClient asyncHttpClient;
 
-    MonitorConfig monitorConfig;
+    ClientConfig clientConfig;
+    DefaultSiteConfig defaultSiteConfig;
 
     List<RequestConfig> requestConfigList = new ArrayList<RequestConfig>();
 
     @Mock
-    SiteConfig[] siteConfigs;
+    List<SiteConfig> siteConfigs;
+
 
     @Before
     public void init() throws Exception {
 
         requestConfig = Mockito.mock(RequestConfig.class);
-        monitorConfig = Mockito.mock(MonitorConfig.class);
+        clientConfig = Mockito.mock(ClientConfig.class);
+        defaultSiteConfig = Mockito.mock(DefaultSiteConfig.class);
         requestConfigSpy = spy(new RequestConfig());
 
         clientFactory = Mockito.mock(ClientFactory.class);
         asyncHttpClient = Mockito.mock(AsyncHttpClient.class);
 
-        when(clientFactory.createHttpClient(Mockito.eq(monitorConfig), Mockito.any(String.class), Mockito.any(SSLContext.class))).thenReturn(asyncHttpClient);
+        when(clientFactory.createHttpClient(Mockito.eq(clientConfig), Mockito.eq(defaultSiteConfig), Mockito.any(String.class), Mockito.any(SSLContext.class))).thenReturn(asyncHttpClient);
 
     }
 
     @Test
     public void testSetConfig() throws Exception {
         List<RequestConfig> requestConfigList = getTestRequestConfig();
-        when(requestConfig.setClientForSite(monitorConfig, siteConfigs)).thenReturn(requestConfigList);
+        when(requestConfig.setClientForSite(clientConfig, defaultSiteConfig, siteConfigs)).thenReturn(requestConfigList);
 
-        Assert.assertEquals(requestConfig.setClientForSite(monitorConfig, siteConfigs).size(),2);
+        Assert.assertEquals(requestConfig.setClientForSite(clientConfig, defaultSiteConfig, siteConfigs).size(),2);
     }
 
     @Test(expected=TaskExecutionException.class)
     public void testNullMonitor() throws Exception {
-        requestConfigSpy.setClientForSite(null, monitorConfig.getSites());
+        requestConfigSpy.setClientForSite(null, defaultSiteConfig, siteConfigs);
     }
 
     @Test
     public void testCreateClient() throws Exception {
-        Assert.assertNotNull(clientFactory.createHttpClient(monitorConfig, AuthTypeEnum.NONE.name(),null));
+        Assert.assertNotNull(clientFactory.createHttpClient(clientConfig, defaultSiteConfig, AuthTypeEnum.NONE.name(),null));
     }
 
     @Test
     public void testCreateSSLCertClient() throws Exception {
-        Assert.assertNotNull(clientFactory.createHttpClient(monitorConfig, AuthTypeEnum.NONE.name(),Mockito.mock(SSLContext.class)));
+        Assert.assertNotNull(clientFactory.createHttpClient(clientConfig, defaultSiteConfig, AuthTypeEnum.NONE.name(),Mockito.mock(SSLContext.class)));
     }
+
 
     @Test
     public void testCloseClient(){

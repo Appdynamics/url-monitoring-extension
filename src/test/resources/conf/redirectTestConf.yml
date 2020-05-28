@@ -13,22 +13,69 @@ defaultParams:
     numAttempts:     1
 
 
+
+
 #Sites that need to be monitored
-
 sites:
+  #No authentication, with a pattern to match
+  - name:     Google
+    url:      http://www.google.com
+    followRedirects: false
+    groupName: MySites
+    # Patterns to be matched, multiple patterns(to be matched) can be configured for a given site
+    matchPatterns:
+      - name: LuckyButton
+        type: caseInsensitiveSubstring
+        pattern: Google
 
-   - name:       Twitter
-     url:        http://www.twitter.com
-     authType:   BASIC
-     followRedirects: false
+  - name:     AppDynamics
+    url:      http://www.appdynamics.com
+    authType: BASIC
 
-
-    # matchPatterns:
-    #    - name:       Error
-    #      type:       substring
-    #      pattern:    Error 400
+  - name:     File Download
+    url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
 
 
 
-#prefix used to show up metrics in AppDynamics
-metricPrefix:  "Custom Metrics|URLMonitor|"
+metricConfig:
+
+  - name: "Average Response Time (ms)"
+    alias: "Average Response Time (ms)"
+    aggregationType: "AVERAGE"
+    timeRollUpType: "AVERAGE"
+    clusterRollUpType: "INDIVIDUAL"
+
+  - name: "Download Time (ms)"
+    alias: "Download Time (ms)"
+    aggregationType: "AVERAGE"
+    timeRollUpType: "AVERAGE"
+    clusterRollUpType: "INDIVIDUAL"
+
+  - name: "First Byte Time (ms)"
+    alias: "First Byte Time (ms)"
+    aggregationType: "AVERAGE"
+    timeRollUpType: "AVERAGE"
+    clusterRollUpType: "INDIVIDUAL"
+
+  - name: "Response Code"
+    alias: "Response Code"
+    aggregationType: "AVERAGE"
+    timeRollUpType: "AVERAGE"
+    clusterRollUpType: "INDIVIDUAL"
+
+  - name: "Status"
+    alias: "Status"
+    aggregationType: "AVERAGE"
+    timeRollUpType: "AVERAGE"
+    clusterRollUpType: "INDIVIDUAL"
+
+  - name: "Response Bytes"
+    alias: "Response Bytes"
+    aggregationType: "AVERAGE"
+    timeRollUpType: "AVERAGE"
+    clusterRollUpType: "INDIVIDUAL"
+
+metricPrefix: Custom Metrics|URLMonitor|
+
+# number of concurrent tasks
+numberOfThreads: 2

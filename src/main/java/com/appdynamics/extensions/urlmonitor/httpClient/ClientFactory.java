@@ -7,17 +7,17 @@
 
 package com.appdynamics.extensions.urlmonitor.httpClient;
 
+import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.urlmonitor.auth.AuthTypeEnum;
 import com.appdynamics.extensions.urlmonitor.config.ClientConfig;
 import com.appdynamics.extensions.urlmonitor.config.DefaultSiteConfig;
-import com.appdynamics.extensions.urlmonitor.config.MonitorConfig;
 import com.appdynamics.extensions.urlmonitor.config.ProxyConfig;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
 import com.ning.http.client.ProxyServer;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import javax.net.ssl.SSLContext;
 
@@ -27,19 +27,17 @@ import javax.net.ssl.SSLContext;
  */
 public class ClientFactory {
 
-    private static final Logger logger = Logger.getLogger(ClientFactory.class);
+    private static final Logger logger = ExtensionsLoggerFactory.getLogger(ClientFactory.class);
 
     /**
      * Creates the actual client with relevant properties
-     * @param config
+     * @param clientConfig
+     * @param defaultSiteConfig
      * @param authType
      * @param sslContext
      * @return
      */
-    public AsyncHttpClient createHttpClient(MonitorConfig config, String authType, SSLContext sslContext) {
-
-        DefaultSiteConfig defaultSiteConfig = config.getDefaultParams();
-        ClientConfig clientConfig = config.getClientConfig();
+    public AsyncHttpClient createHttpClient(ClientConfig clientConfig, DefaultSiteConfig defaultSiteConfig, String authType, SSLContext sslContext) {
 
 
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();

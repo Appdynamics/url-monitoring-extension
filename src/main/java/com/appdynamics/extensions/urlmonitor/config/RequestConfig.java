@@ -44,7 +44,7 @@ public class RequestConfig {
 
     private AsyncHttpClient defaultClient = null;
 
-    public List<RequestConfig> setClientForSite(MonitorConfig config, SiteConfig[] siteConfig) throws TaskExecutionException{
+    public List<RequestConfig> setClientForSite(ClientConfig clientConfig, DefaultSiteConfig defaultSiteConfig, List<SiteConfig> siteConfig) throws TaskExecutionException{
 
         List<RequestConfig> requestConfigList = new ArrayList<RequestConfig>();
 
@@ -58,10 +58,10 @@ public class RequestConfig {
                         System.setProperty("javax.net.ssl.trustStorePassword", site.getTrustStorePassword());
                     }
                     SSLContext sslContext = new SSLCertAuth().getSSLContext(site.getKeyStorePath(), site.getKeyStoreType(), site.getKeyStorePassword());
-                    requestConfig.setClient(new ClientFactory().createHttpClient(config, AuthTypeEnum.SSL.name(), sslContext));
+                    requestConfig.setClient(new ClientFactory().createHttpClient(clientConfig, defaultSiteConfig, AuthTypeEnum.SSL.name(), sslContext));
                 } else {
                     if (defaultClient == null || defaultClient.isClosed()) {
-                        defaultClient = new ClientFactory().createHttpClient(config, AuthTypeEnum.NONE.name(), null);
+                        defaultClient = new ClientFactory().createHttpClient(clientConfig, defaultSiteConfig, AuthTypeEnum.NONE.name(), null);
                     }
                     requestConfig.setClient(defaultClient);
                 }

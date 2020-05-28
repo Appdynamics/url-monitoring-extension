@@ -7,10 +7,11 @@
 
 package com.appdynamics.extensions.urlmonitor.auth;
 
+import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.urlmonitor.config.ProxyConfig;
 import com.google.common.base.Strings;
 import com.ning.http.client.Realm;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
@@ -18,22 +19,13 @@ import javax.net.ssl.SSLContext;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.Authenticator;
-import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
-import java.net.Proxy;
-import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.UnrecoverableKeyException;
+import java.net.*;
+import java.security.*;
 import java.security.cert.CertificateException;
 
 public class SSLCertAuth {
 
-    private static final Logger LOG = Logger.getLogger(SSLCertAuth.class);
+    private static final Logger LOG = ExtensionsLoggerFactory.getLogger(SSLCertAuth.class);
 
     public Realm.RealmBuilder realmBuilderBase() {
         return new Realm.RealmBuilder()

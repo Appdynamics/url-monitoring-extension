@@ -7,10 +7,11 @@
 
 package com.appdynamics.extensions.urlmonitor.auth;
 
+import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.ning.http.client.Realm;
 import com.ning.http.client.Realm.AuthScheme;
 import com.ning.http.client.Realm.RealmBuilder;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,7 +26,7 @@ public class NTLMAuth {
     private String domain;
     private String host;
 
-    private static final Logger log = Logger.getLogger(NTLMAuth.class);
+    private static final Logger log = ExtensionsLoggerFactory.getLogger(NTLMAuth.class);
 
     public NTLMAuth(String username, String password, String url, String encryptedPassword, String encryptionKey) {
         this.username = username;
