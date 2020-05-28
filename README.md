@@ -279,7 +279,7 @@ Following metrics are reported for each site:
 - Response Bytes -> It represents the length of the response returned from the URL.
 - Response Code -> It represents the HTTP status code returned from the URL.
 - Status -> It represents whether the URL is FAILED(2), ERROR(3) or SUCCESS(4).
-         Possible values are: UNKNOWN(0), CANCELLED(1), FAILED(2), ERROR(3), SUCCESS(4)
+         Possible values are: UNKNOWN(0), FAILED(2), ERROR(3), SUCCESS(4)
 - Responsive Count(Available at GroupName Level) -> Number of sites in a given group, that responded successfully.
 
 

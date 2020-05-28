@@ -38,6 +38,14 @@ sites:
      url:      http://www.appdynamics.com
      authType: BASIC
 
+  # Basic Authentication with password encryption
+   - name:       My Controller
+     url:        https://mycontroller.saas.appdynamics.com/controller/rest/applications
+     username:   demouser@customer1
+     password:   welcome
+     encryptedPassword: "IGVtC9eudmgG8RDjmRjGPQ=="
+     authType: BASIC
+
    - name:     File Download
      url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
 
@@ -146,3 +154,6 @@ controllerInfo:
   applicationName: "" # -Dappdynamics.agent.applicationName
   tierName: "" # -Dappdynamics.agent.tierName
   nodeName: "" # -Dappdynamics.agent.nodeName
+
+#Encryption key for your controllerInfo password
+encryptionKey: "abcd"
