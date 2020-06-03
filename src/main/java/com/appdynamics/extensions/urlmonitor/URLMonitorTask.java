@@ -17,6 +17,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -406,7 +408,7 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
     private String readPostRequestFile(SiteConfig site) {
         String requestBody = "";
         try {
-            requestBody = (String) configYml.get(site.getRequestPayloadFile());
+            requestBody = new String (Files.readAllBytes(Paths.get(site.getRequestPayloadFile())));
         }  catch (Exception e) {
             logger.error("Exception while reading PostRequest Body file for url " + site.getUrl(), e);
         }

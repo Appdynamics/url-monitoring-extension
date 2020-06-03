@@ -78,7 +78,7 @@ sites:
      method:   POST
      headers:
        Content-Type: application/json
-       requestPayloadFile: src/test/resources/conf/postrequestPayloadFile
+     requestPayloadFile: src/test/resources/conf/postrequestPayloadFile
      matchPatterns:
        - name:       Error
          type:       substring
