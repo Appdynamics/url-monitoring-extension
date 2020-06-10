@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,7 +62,7 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
     }
 
     public void run() {
-        List<Metric> metricDataList = new ArrayList<>();
+        List<Metric> metricDataList = new CopyOnWriteArrayList<>();
         try {
             final CountDownLatch latch = new CountDownLatch(getTotalAttemptCount());
             logger.debug(String.format("Sending %d HTTP requests asynchronously to %d sites",
