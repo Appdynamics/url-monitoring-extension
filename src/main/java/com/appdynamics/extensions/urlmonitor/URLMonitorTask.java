@@ -11,6 +11,7 @@ import com.appdynamics.extensions.urlmonitor.auth.AuthTypeEnum;
 import com.appdynamics.extensions.urlmonitor.config.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.ning.http.client.*;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.apache.commons.lang3.StringUtils;
@@ -21,7 +22,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Phaser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,7 +64,7 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
     }
 
     public void run() {
-        List<Metric> metricDataList = new ArrayList<>();
+        List<Metric> metricDataList = new CopyOnWriteArrayList<>();
         try {
             final CountDownLatch latch = new CountDownLatch(getTotalAttemptCount());
             logger.debug(String.format("Sending %d HTTP requests asynchronously to %d sites",
@@ -124,9 +127,11 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                             private void finish(SiteResult result) {
                                 results.get(site)
                                         .add(result);
+
                                 latch.countDown();
                                 printMetricsForRequestCompleted(results.get(site), site);
                                 logger.debug(latch.getCount() + " requests remaining");
+
                             }
 
                             private void printMetricsForRequestCompleted(List<SiteResult> results, SiteConfig site) {
@@ -181,12 +186,14 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                                 metricValuesMap.put("Status", Long.toString(status.ordinal()));
                                 metricValuesMap.put("Response Bytes", Long.toString(responseSize));
 
+                                List<Metric> metricDataListInner = Lists.newArrayList();
+
                                 for (Map.Entry<String, String> metricValue : metricValuesMap.entrySet()) {
                                     for (MetricConfig metricData : metrics) {
                                         if (metricData != null && metricData.getName().equalsIgnoreCase(metricValue.getKey())) {
                                             Map<String, String> propertiesMap = mapper.convertValue(metricData, Map.class);
                                             Metric metric = new Metric(metricData.getName(), String.valueOf(metricValue.getValue()), metricPath + "|" + metricData.getAlias(), propertiesMap);
-                                            metricDataList.add(metric);
+                                            metricDataListInner.add(metric);
                                         }
                                     }
                                 }
@@ -195,8 +202,12 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                                 if (matches != null) {
                                     for (Map.Entry<String, Integer> match : matches.entrySet()) {
                                         Metric metric = new Metric("Count", String.valueOf(match.getValue()), metricPath + "|" + match.getKey() + "|Count", "SUM", "SUM", "COLLECTIVE");
-                                        metricDataList.add(metric);
+                                        metricDataListInner.add(metric);
                                     }
+                                }
+
+                                if(metricDataListInner != null && metricDataListInner.size()>0){
+                                    metricWriter.transformAndPrintMetrics(metricDataListInner);
                                 }
 
                             }
@@ -362,6 +373,8 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
 
                 final long overallElapsedTime = System.currentTimeMillis() - overallStartTime;
 
+
+
                 metricDataList.add(new Metric("Requests Sent", String.valueOf(getTotalAttemptCount()), metricPrefix + "|Requests Sent", "SUM", "SUM", "COLLECTIVE"));
                 metricDataList.add(new Metric("Elapsed Time (ms)", String.valueOf(overallElapsedTime), metricPrefix + "|Elapsed Time (ms)", "SUM", "SUM", "COLLECTIVE"));
                 metricDataList.add(new Metric("Monitored Sites Count", String.valueOf(siteConfigs.size()), metricPrefix + "|Monitored Sites Count", "SUM", "SUM", "COLLECTIVE"));
@@ -372,7 +385,6 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
 
                     metricDataList.add(new Metric("Responsive Sites Count", String.valueOf(metricValue), metricPrefix + "|Responsive Sites Count", "OBSERVATION", "CURRENT", "COLLECTIVE"));
                 }
-
 
                 //Wait for all tasks to finish
                 logger.info("All requests completed in " + overallElapsedTime + " ms");
