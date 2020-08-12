@@ -12,9 +12,11 @@ import com.appdynamics.extensions.urlmonitor.config.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.ning.http.client.*;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
+import io.netty.handler.codec.http.HttpHeaders;
 import org.apache.commons.lang3.StringUtils;
+import org.asynchttpclient.*;
+import org.asynchttpclient.proxy.ProxyServer;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayOutputStream;
@@ -24,7 +26,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Phaser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -84,12 +85,22 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                     final SiteConfig site = requestConfig.getSiteConfig();
 
                     for (int i = 0; i < site.getNumAttempts(); i++) {
-                        RequestBuilder rb = new RequestBuilder()
-                                .setMethod(site.getMethod())
-                                .setUrl(site.getUrl())
-                                .setFollowRedirects(site.isFollowRedirects())
-                                .setRealm(AuthSchemeFactory.getAuth(AuthTypeEnum.valueOf(site.getAuthType()!=null ? site.getAuthType() : AuthTypeEnum.NONE.name()),site)
-                                        .build());
+                        RequestBuilder rb;
+
+                        if(Strings.isNullOrEmpty(site.getAuthType()) || AuthTypeEnum.SSL.name().equalsIgnoreCase(site.getAuthType())){
+                            rb = new RequestBuilder()
+                                    .setMethod(site.getMethod())
+                                    .setUrl(site.getUrl())
+                                    .setFollowRedirect(site.isFollowRedirects());
+                        }else{
+                            rb = new RequestBuilder()
+                                    .setMethod(site.getMethod())
+                                    .setUrl(site.getUrl())
+                                    .setFollowRedirect(site.isFollowRedirects())
+                                    .setRealm(AuthSchemeFactory.getAuth(AuthTypeEnum.valueOf(site.getAuthType()!=null ? site.getAuthType() : AuthTypeEnum.BASIC.name()),site)
+                                            .build());
+                        }
+
                         if (!Strings.isNullOrEmpty(site.getRequestPayloadFile())) {
                             rb.setBody(readPostRequestFile(site));
                             if (!"post".equalsIgnoreCase(site.getMethod())) {
@@ -100,14 +111,21 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                         ProxyConfig proxyConfig = site.getProxyConfig();
                         if (proxyConfig != null) {
                             if (proxyConfig.getUsername() != null && proxyConfig.getPassword() != null) {
-                                rb.setProxyServer(new ProxyServer(proxyConfig.getHost(), proxyConfig.getPort(), proxyConfig.getUsername(), proxyConfig.getPassword()));
+                                rb.setProxyServer(new ProxyServer.Builder(proxyConfig.getHost(),proxyConfig.getPort())
+                                        .setRealm(new Realm.Builder(proxyConfig.getUsername(),proxyConfig.getPassword()).setScheme(Realm.AuthScheme.BASIC).build())
+                                        .build());
                             } else {
-                                rb.setProxyServer(new ProxyServer(proxyConfig.getHost(), proxyConfig.getPort()));
+                                rb.setProxyServer(new ProxyServer.Builder(proxyConfig.getHost(),proxyConfig.getPort()).build());
                             }
                         }
 
                         for (Map.Entry<String, String> header : site.getHeaders().entrySet()) {
                             rb.addHeader(header.getKey(), header.getValue());
+                        }
+
+                        if(requestConfig.getClient()==null){
+                            latch.countDown();
+                            continue;
                         }
 
                         logger.debug(String.format("Sending %s request %d of %d to %s at %s with redirect allowed as %s",
@@ -128,8 +146,8 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                                 results.get(site)
                                         .add(result);
 
-                                latch.countDown();
                                 printMetricsForRequestCompleted(results.get(site), site);
+                                latch.countDown();
                                 logger.debug(latch.getCount() + " requests remaining");
 
                             }
@@ -213,7 +231,7 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                             }
 
                             @Override
-                            public STATE onStatusReceived(HttpResponseStatus status) throws Exception {
+                            public State onStatusReceived(HttpResponseStatus status) throws Exception {
 
                                 result.setFirstByteTime(System.currentTimeMillis() - startTime);
                                 result.setResponseCode(status.getStatusCode());
@@ -228,7 +246,7 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                                             site.getUrl(),
                                             status.getStatusCode(),
                                             status.getStatusText()));
-                                    return STATE.CONTINUE;
+                                    return State.CONTINUE;
                                 } else if (status.getStatusCode() == 401 && !site.isTreatAuthFailedAsError()) {
                                     logger.debug(String.format("[%s] %s %s -> %d %s [but OK]",
                                             site.getName(),
@@ -236,7 +254,7 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                                             site.getUrl(),
                                             status.getStatusCode(),
                                             status.getStatusText()));
-                                    return STATE.CONTINUE;
+                                    return State.CONTINUE;
                                 }
 
                                 logger.warn(String.format("[%s] %s %s -> %d %s",
@@ -247,19 +265,17 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                                         status.getStatusText()));
                                 result.setStatus(SiteResult.ResultStatus.ERROR);
 
-                                return STATE.ABORT;
+                                return State.ABORT;
                             }
 
                             @Override
-                            public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
-                                for (Map.Entry<String, List<String>> entry : headers.getHeaders().entrySet()) {
-                                    for (String value : entry.getValue()) {
-                                        body.write(entry.getKey().getBytes());
-                                        body.write(':');
-                                        body.write(' ');
-                                        body.write(value.getBytes());
-                                        body.write('\n');
-                                    }
+                            public State onHeadersReceived(HttpHeaders headers) throws Exception {
+                                for(Map.Entry<String,String> entry: headers.entries()){
+                                    body.write(entry.getKey().getBytes());
+                                    body.write(':');
+                                    body.write(' ');
+                                    body.write(entry.getValue().getBytes());
+                                    body.write('\n');
                                 }
                                 body.write("\n\n".getBytes());
 
@@ -267,13 +283,13 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                                 logger.debug(String.format("[%s] Headers received in %d ms",
                                         site.getName(), headerTime));
 
-                                return STATE.CONTINUE;
+                                return State.CONTINUE;
                             }
 
                             @Override
-                            public STATE onBodyPartReceived(HttpResponseBodyPart content) throws Exception {
-                                content.writeTo(body);
-                                return STATE.CONTINUE;
+                            public State onBodyPartReceived(HttpResponseBodyPart content) throws Exception {
+                                body.write(content.getBodyPartBytes());
+                                return State.CONTINUE;
                             }
 
                             private int getStringMatchCount(String text, String pattern) {
@@ -295,28 +311,28 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
 
                             @Override
                             public Response onCompleted(Response response) throws Exception {
-//
+
                                 if (result.getStatus() == SiteResult.ResultStatus.SUCCESS) {
-//
+
                                     result.setDownloadTime(System.currentTimeMillis() - (startTime + result.getFirstByteTime()));
                                     result.setTotalTime(System.currentTimeMillis() - startTime);
-//
+
                                     String responseBody = body.toString();
                                     result.setResponseBytes(responseBody.length());
                                     logger.debug(String.format("[%s] Download time was %d ms for %d bytes",
                                             site.getName(),
                                             result.getDownloadTime(),
                                             result.getResponseBytes()));
-//
+
                                     if (site.getMatchPatterns().size() > 0) {
-//
+
                                         for (MatchPattern pattern : site.getMatchPatterns()) {
                                             MatchPattern.PatternType type = MatchPattern.PatternType.fromString(pattern.getType());
                                             logger.debug(String.format("[%s] Checking for a %s match against '%s'",
                                                     site.getName(),
                                                     pattern.getType(),
                                                     pattern.getPattern()));
-//
+
                                             int matchCount;
                                             switch (type) {
                                                 case SUBSTRING:
@@ -335,11 +351,11 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                                                     matchCount = getRegexMatchCount(responseBody,
                                                             "(?i)\\b" + pattern.getPattern() + "\\b");
                                                     break;
-//
+
                                                 default:
                                                     throw new IllegalArgumentException("Unknown pattern type: " + pattern.getType());
                                             }
-//
+
                                             logger.debug(String.format("[%s] Match count for %s pattern '%s' = %d ",
                                                     site.getName(),
                                                     pattern.getType(),
@@ -348,15 +364,15 @@ public class URLMonitorTask implements AMonitorTaskRunnable {
                                             result.getMatches().put(pattern.getName(), matchCount);
                                         }
                                     }
-//
+
                                 }
-//
+
                                 logger.debug(String.format("[%s] Request completed in %d ms",
                                         site.getName(),
                                         result.getTotalTime()));
                                 finish(result);
-//
-//
+
+
                                 return response;
                             }
                             //

@@ -2,7 +2,6 @@ package com.appdynamics.extensions.urlmonitor;
 
 import com.appdynamics.extensions.ABaseMonitor;
 import com.appdynamics.extensions.TasksExecutionServiceProvider;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +28,6 @@ public class URLMonitor extends ABaseMonitor {
         URLMonitorTask task = new URLMonitorTask(serviceProvider, this.getContextConfiguration());
         serviceProvider.submit("URLMonitor", task);
     }
-
 
     protected List<Map<String, ?>> getServers() {
         return new ArrayList<Map<String, ?>>();

@@ -7,7 +7,7 @@
 
 package com.appdynamics.extensions.urlmonitor.auth;
 
-import com.ning.http.client.Realm;
+import org.asynchttpclient.Realm;
 
 public class BasicAuth {
 
@@ -45,11 +45,9 @@ public class BasicAuth {
         return encryptionKey;
     }
 
-    public Realm.RealmBuilder realmBuilderBase() {
-        return new Realm.RealmBuilder()
+    public Realm.Builder realmBuilderBase() {
+        return new Realm.Builder(getUsername(),AuthSchemeFactory.getPassword(getPassword(),getEncryptedPassword(),getEncryptionKey()))
                 .setScheme(Realm.AuthScheme.BASIC)
-                .setUsePreemptiveAuth(getUsePreemptiveAuth())
-                .setPrincipal(getUsername())
-                .setPassword(AuthSchemeFactory.getPassword(getPassword(),getEncryptedPassword(),getEncryptionKey()));
+                .setUsePreemptiveAuth(getUsePreemptiveAuth());
     }
 }

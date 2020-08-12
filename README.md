@@ -317,8 +317,8 @@ Always feel free to fork and contribute any changes directly here on [GitHub](ht
 ## Version
 |          Name            |  Version   |
 |--------------------------|------------|
-|Extension Version         |2.0.1       |
+|Extension Version         |2.0.2       |
 |Controller Compatibility  |4.5 or Later|
 |Machine Agent Version     |4.5.13+     |
-|Last Update               |06/23/2020  |
+|Last Update               |08/11/2020  |
 
