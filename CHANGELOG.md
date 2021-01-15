@@ -1,5 +1,8 @@
 # AppDynamics Extensions URL Monitor CHANGELOG
 
+### Version 2.1.0
+- Upgraded to appd-exts-commons 2.2.4
+
 ### Version 2.0.1
 - Changes related to metric drop issue using CopyOnWriteArrayList
 - Changed individual Url metric reporting behaviour
