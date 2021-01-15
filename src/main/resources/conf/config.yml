@@ -51,22 +51,22 @@ sites:
      url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
 
   #NTLM Auth Sample Configuration
-   - name:     My Controller
+   - name:     My Controller 2
      url:      http://localhost:8090/controller
      username: user@DOMAIN
      password: password
      authType: NTLM
 
      # Client Cert Auth Sample Configuration
-   - name:         LocalHost
-     url:          https://localhost:8443
-     password:     password
-     authType:     SSL
-     keyStoreType: SUNX509
-     keyStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
-     keyStorePassword: password
-     trustStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
-     trustStorePassword: password
+#   - name:         LocalHost
+#     url:          https://localhost:8443
+#     password:     password
+#     authType:     SSL
+#     keyStoreType: SUNX509
+#     keyStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
+#     keyStorePassword: password
+#     trustStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
+#     trustStorePassword: password
 
      #POST request sample configuration
    - name:     My POST site
@@ -85,7 +85,7 @@ sites:
          pattern:    Error 400
 
      #Proxy Configuration
-   - name:     Google
+   - name:     Google with proxy
      url:      http://www.google.com
      groupName: MySites
      proxyConfig:
