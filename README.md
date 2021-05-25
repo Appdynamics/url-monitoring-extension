@@ -309,6 +309,13 @@ Please provide the following in order for us to assist you better.
 
 For any support related questions, you can also contact help@appdynamics.com.
 
+## Link to DevNet Learning Labs
+
+- [Appdynamics Fundamentals](https://developer.cisco.com/learning/modules/appdynamics-fundamentals)
+
+## Related Sandbox
+
+- [Cisco AppDynamics sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/9e056219-ab84-4741-9485-de3d3446caf2?diagramType=Topology)
 
 ## Contributing
 
@@ -320,5 +327,5 @@ Always feel free to fork and contribute any changes directly here on [GitHub](ht
 |Extension Version         |2.1.0       |
 |Controller Compatibility  |4.5 or Later|
 |Machine Agent Version     |4.5.13+     |
-|Last Update               |15/01/2021  |
+|Last Update               |25/05/2021  |
 
