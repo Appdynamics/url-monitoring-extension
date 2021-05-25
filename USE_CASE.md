@@ -10,9 +10,5 @@ For reference only (Extension deployment is not possible on the current sandbox)
 ## Links to DevNet Learning Labs
 [AppDynamics Fundamentals](https://developer.cisco.com/learning/modules/appdynamics-fundamentals)
 
-## Solutions on Ecosystem Exchange
-Provide links to related solutions on DevNet Ecosystem Exchange:
-[CHANGE EXAMPLE Physical Density Controls](https://developer.cisco.com/ecosystem/meraki/apps/5ed8fa69a0774c0a8cf97e9b/)
-
 [Installation and Configuration workflow](https://github.com/Appdynamics/url-monitoring-extension/blob/master/README.md)
 
