@@ -12,12 +12,10 @@ Before the extension is installed, the prerequisites mentioned [here](https://co
 
 ## Installation
 
-1. To build from source, clone this repository and run 'mvn clean install'. This will produce a UrlMonitor-VERSION.zip in the target directory. Alternatively, download the latest release archive from [Github](https://github.com/Appdynamics/url-monitoring-extension/releases)
-2. Unzip URLMonitor.zip and copy the 'UrlMonitor' directory to `<MACHINE_AGENT_HOME>/monitors/`
-3. Configure the extension by referring to the below section.
-4. Restart the Machine Agent. 
- 
-In the AppDynamics Metric Browser, look for: Application Infrastructure Performance  | \<Tier\> | Custom Metrics | URLMonitor (or the custom path you specified).
+1. To build from source, clone this repository and run 'mvn clean install'. This will produce a UrlMonitor-VERSION.zip in the target directory.
+2. Unzip URLMonitor-VERSION.zip and copy the 'UrlMonitor' directory to `<MACHINE_AGENT_HOME>/monitors/`
+3. Configure the extension by referring to the Configuration section.
+4. Restart the Machine Agent.
 
 ## Configuration
 
@@ -32,7 +30,7 @@ Note that the path is relative to `$AGENT_HOME`.
 ```
 
 The main configuration for this extension then lives in a file called `config.yaml`. It uses a simple syntax that anyone can edit with a simple text editor. 
-**Note: Please avoid using tab (\t) when editing yaml files. You may want to validate the yaml file using a [yaml validator](http://yamllint.com/).**
+**Note: Please avoid using tab (\t) when editing yaml files. You may want to validate the yaml file using a [yaml validator](https://jsonformatter.org/yaml-validator).**
 
 Here's a sample:
 
@@ -301,7 +299,7 @@ Always feel free to fork and contribute any changes directly here on [GitHub](ht
 |          Name            |  Version   |
 |--------------------------|------------|
 |Extension Version         |2.1.0       |
-|Controller Compatibility  |4.5 or Later|
-|Machine Agent Version     |4.5.13+     |
 |Last Update               |15/01/2021  |
+|Change List               |[ChangeLog](https://github.com/Appdynamics/url-monitoring-extension/blob/master/CHANGELOG.md)|
 
+**Note**: While extensions are maintained and supported by customers under the open-source licensing model, they interact with agents and Controllers that are subject to [AppDynamics’ maintenance and support policy](https://docs.appdynamics.com/latest/en/product-and-release-announcements/maintenance-support-for-software-versions). Some extensions have been tested with AppDynamics 4.5.13+ artifacts, but you are strongly recommended against using versions that are no longer supported.
