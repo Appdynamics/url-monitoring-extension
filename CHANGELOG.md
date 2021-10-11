@@ -1,5 +1,10 @@
 # AppDynamics Extensions URL Monitor CHANGELOG
 
+
+### Version 2.2.0
+- Changes related to Async HTTP client dependency
+- Updated to appd-exts-commons 2.2.6
+
 ### Version 2.1.0
 - Upgraded to appd-exts-commons 2.2.4
 

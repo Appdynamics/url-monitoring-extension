@@ -28,7 +28,7 @@ public class SiteConfig extends SiteConfigBase
     private Map<String, String> headers = new HashMap<String, String>();
     private List<MatchPattern> matchPatterns = new ArrayList<MatchPattern>();
     private String requestPayloadFile;
-    private String authType = AuthTypeEnum.NONE.name();
+    private String authType;
     private String keyStoreType;
     private String keyStorePath;
     private String keyStorePassword;

@@ -10,37 +10,46 @@ package com.appdynamics.extensions.urlmonitor.auth;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.urlmonitor.config.ProxyConfig;
 import com.google.common.base.Strings;
-import com.ning.http.client.Realm;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslProvider;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.slf4j.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 
 public class SSLCertAuth {
 
     private static final Logger LOG = ExtensionsLoggerFactory.getLogger(SSLCertAuth.class);
 
-    public Realm.RealmBuilder realmBuilderBase() {
-        return new Realm.RealmBuilder()
-                .setScheme(Realm.AuthScheme.NONE);
-    }
-
-    public SSLContext getSSLContext(String keyStoreName, String keyStoreType, String password) {
+    public SslContext getSSLContext(String keyStoreName, String keyStoreType, String password) {
         KeyStore ks = getKeyStore(keyStoreName, password);
         KeyManagerFactory keyManagerFactory = null;
         try {
             keyManagerFactory = KeyManagerFactory.getInstance(keyStoreType);
             keyManagerFactory.init(ks, password.toCharArray());
-            SSLContext context = SSLContext.getInstance("TLS");
-            context.init(keyManagerFactory.getKeyManagers(), null, new SecureRandom());
+
+            LOG.debug("Default Algorithms: "+Security.getProperty("ssl.KeyManagerFactory.algorithm"));
+            LOG.debug("List of available KeyManagers: "+ Arrays.toString(keyManagerFactory.getKeyManagers()));
+            LOG.debug("Key Store type used for building SSLContext: "+(keyManagerFactory.getKeyManagers()[0]));
+
+            SslContext context = SslContextBuilder
+                    .forClient()
+                    .sslProvider(SslProvider.JDK)
+                    .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                    .keyManager(keyManagerFactory.getKeyManagers()[0])
+                    .build();
+
             return context;
+
         } catch (NoSuchAlgorithmException e) {
             LOG.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
@@ -50,7 +59,7 @@ public class SSLCertAuth {
         } catch (UnrecoverableKeyException e) {
             LOG.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
-        } catch (KeyManagementException e) {
+        } catch (Exception e) {
             LOG.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -79,6 +88,9 @@ public class SSLCertAuth {
             LOG.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         } catch (IOException e) {
+            LOG.error(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        } catch (Exception e) {
             LOG.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         } finally {

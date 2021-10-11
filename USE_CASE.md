@@ -11,4 +11,3 @@ For reference only (Extension deployment is not possible on the current sandbox)
 [AppDynamics Fundamentals](https://developer.cisco.com/learning/modules/appdynamics-fundamentals)
 
 [Installation and Configuration workflow](https://github.com/Appdynamics/url-monitoring-extension/blob/master/README.md)
-

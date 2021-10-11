@@ -10,7 +10,8 @@ package com.appdynamics.extensions.urlmonitor.auth;
 
 import com.appdynamics.extensions.urlmonitor.config.SiteConfig;
 import com.appdynamics.extensions.util.CryptoUtils;
-import com.ning.http.client.Realm;
+//import com.ning.http.client.Realm;
+import org.asynchttpclient.Realm;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,9 +21,9 @@ import java.util.Map;
  */
 public class AuthSchemeFactory {
 
-    public static Realm.RealmBuilder getAuth(AuthTypeEnum authType, SiteConfig siteConfig){
+    public static Realm.Builder getAuth(AuthTypeEnum authType, SiteConfig siteConfig){
 
-        Realm.RealmBuilder realmBuilder = null;
+        Realm.Builder realmBuilder = null;
         switch (authType){
             case NTLM:
                 NTLMAuth ntlmAuth = new NTLMAuth(siteConfig.getUsername(),siteConfig.getPassword(),siteConfig.getUrl(),siteConfig.getEncryptedPassword(), siteConfig.getEncryptionKey());
@@ -31,14 +32,6 @@ public class AuthSchemeFactory {
             case BASIC:
                 BasicAuth basicAuth = new BasicAuth(siteConfig.getUsername(),siteConfig.getPassword(),siteConfig.getEncryptedPassword(), siteConfig.getEncryptionKey(), siteConfig.getUsePreemptiveAuth());
                 realmBuilder = basicAuth.realmBuilderBase();
-                break;
-            case SSL:
-                SSLCertAuth sslAuth = new SSLCertAuth();
-                realmBuilder = sslAuth.realmBuilderBase();
-                break;
-            case NONE:
-                realmBuilder = new Realm.RealmBuilder()
-                        .setScheme(Realm.AuthScheme.NONE);
                 break;
         }
         return realmBuilder;

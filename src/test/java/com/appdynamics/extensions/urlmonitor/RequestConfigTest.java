@@ -13,15 +13,15 @@ import com.appdynamics.extensions.urlmonitor.config.DefaultSiteConfig;
 import com.appdynamics.extensions.urlmonitor.config.RequestConfig;
 import com.appdynamics.extensions.urlmonitor.config.SiteConfig;
 import com.appdynamics.extensions.urlmonitor.httpClient.ClientFactory;
-import com.ning.http.client.AsyncHttpClient;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
+import io.netty.handler.ssl.SslContext;
+import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import javax.net.ssl.SSLContext;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +33,7 @@ public class RequestConfigTest {
     RequestConfig requestConfigSpy;
 
     ClientFactory clientFactory;
-    AsyncHttpClient asyncHttpClient;
+    DefaultAsyncHttpClient asyncHttpClient;
 
     ClientConfig clientConfig;
     DefaultSiteConfig defaultSiteConfig;
@@ -53,10 +53,9 @@ public class RequestConfigTest {
         requestConfigSpy = spy(new RequestConfig());
 
         clientFactory = Mockito.mock(ClientFactory.class);
-        asyncHttpClient = Mockito.mock(AsyncHttpClient.class);
-
-        when(clientFactory.createHttpClient(Mockito.eq(clientConfig), Mockito.eq(defaultSiteConfig), Mockito.any(String.class), Mockito.any(SSLContext.class))).thenReturn(asyncHttpClient);
-
+        asyncHttpClient = Mockito.mock(DefaultAsyncHttpClient.class);
+        asyncHttpClient = Mockito.mock(DefaultAsyncHttpClient.class);
+        when(clientFactory.createHttpClient(Mockito.eq(clientConfig), Mockito.eq(defaultSiteConfig), Mockito.any(String.class), Mockito.any(SslContext.class))).thenReturn(asyncHttpClient);
     }
 
     @Test
@@ -79,7 +78,7 @@ public class RequestConfigTest {
 
     @Test
     public void testCreateSSLCertClient() throws Exception {
-        Assert.assertNotNull(clientFactory.createHttpClient(clientConfig, defaultSiteConfig, AuthTypeEnum.NONE.name(),Mockito.mock(SSLContext.class)));
+        Assert.assertNotNull(clientFactory.createHttpClient(clientConfig, defaultSiteConfig, AuthTypeEnum.NONE.name(),Mockito.mock(SslContext.class)));
     }
 
 

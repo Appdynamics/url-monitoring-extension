@@ -14,12 +14,14 @@ import com.appdynamics.extensions.urlmonitor.config.DefaultSiteConfig;
 import com.appdynamics.extensions.urlmonitor.config.ProxyConfig;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncHttpClientConfig;
-import com.ning.http.client.ProxyServer;
-import org.slf4j.Logger;
+import io.netty.handler.ssl.SslContext;
 
-import javax.net.ssl.SSLContext;
+import org.asynchttpclient.DefaultAsyncHttpClient;
+import org.asynchttpclient.DefaultAsyncHttpClientConfig;
+import org.asynchttpclient.Dsl;
+
+import org.asynchttpclient.proxy.ProxyServer;
+import org.slf4j.Logger;
 
 
 /**
@@ -37,20 +39,19 @@ public class ClientFactory {
      * @param sslContext
      * @return
      */
-    public AsyncHttpClient createHttpClient(ClientConfig clientConfig, DefaultSiteConfig defaultSiteConfig, String authType, SSLContext sslContext) {
+    public DefaultAsyncHttpClient createHttpClient(ClientConfig clientConfig, DefaultSiteConfig defaultSiteConfig, String authType, SslContext sslContext) {
 
+        DefaultAsyncHttpClientConfig.Builder builder = Dsl.config();
 
-        AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
         try {
-            builder.setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
+            builder.setUseInsecureTrustManager(clientConfig.isIgnoreSslErrors())
                     .setMaxRedirects(clientConfig.getMaxRedirects())
                     .setConnectTimeout(defaultSiteConfig.getConnectTimeout())
                     .setRequestTimeout(defaultSiteConfig.getSocketTimeout())
                     .setMaxConnectionsPerHost(clientConfig.getMaxConnPerRoute())
                     .setMaxConnections(clientConfig.getMaxConnTotal())
                     .setUserAgent(clientConfig.getUserAgent())
-                    .setAcceptAnyCertificate(clientConfig.isIgnoreSslErrors())
-                    .setSSLContext(AuthTypeEnum.SSL.name().equalsIgnoreCase(authType) ? sslContext : null);
+                    .setSslContext(AuthTypeEnum.SSL.name().equalsIgnoreCase(authType) ? sslContext : null);
 
             if(clientConfig.getEnabledProtocols()!=null) {
                 String[] enabledProtocols = Iterables.toArray(Splitter.on(',').trimResults()
@@ -58,14 +59,16 @@ public class ClientFactory {
 
                 builder.setEnabledProtocols(enabledProtocols);
             }
+
+
             ProxyConfig proxyConfig = defaultSiteConfig.getProxyConfig();
             if (proxyConfig != null) {
-                builder.setProxyServer(new ProxyServer(proxyConfig.getHost(), proxyConfig.getPort()));
+                builder.setProxyServer(new ProxyServer.Builder(proxyConfig.getHost(),proxyConfig.getPort()).build());
             }
         }catch(Exception ex){
             logger.error("Error in HTTP client: " + ex.getMessage(), ex);
         }
-        return new AsyncHttpClient(builder.build());
+        return new DefaultAsyncHttpClient(builder.build());
     }
 
 }

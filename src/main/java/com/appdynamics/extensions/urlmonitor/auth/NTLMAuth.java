@@ -8,9 +8,7 @@
 package com.appdynamics.extensions.urlmonitor.auth;
 
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
-import com.ning.http.client.Realm;
-import com.ning.http.client.Realm.AuthScheme;
-import com.ning.http.client.Realm.RealmBuilder;
+import org.asynchttpclient.Realm;
 import org.slf4j.Logger;
 
 import java.net.URI;
@@ -84,16 +82,14 @@ public class NTLMAuth {
      * Method to create RealmBuilder for NTLM authentication
      * @return
      */
-    public RealmBuilder realmBuilderBase() {
+    public Realm.Builder realmBuilderBase() {
 
         setHostAndDomain(getUrl(),getUsername());
 
-        return new Realm.RealmBuilder()
-                .setScheme(AuthScheme.NTLM)
+        return new Realm.Builder(getUsername(),AuthSchemeFactory.getPassword(getPassword(),getEncryptedPassword(),getEncryptionKey()))
+                .setScheme(Realm.AuthScheme.NTLM)
                 .setNtlmDomain(getDomain())
-                .setNtlmHost(getHost())
-                .setPrincipal(getUsername())
-                .setPassword(AuthSchemeFactory.getPassword(getPassword(),getEncryptedPassword(),getEncryptionKey()));
+                .setNtlmHost(getHost());
     }
 
     /**

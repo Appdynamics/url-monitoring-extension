@@ -7,13 +7,15 @@
 
 package com.appdynamics.extensions.urlmonitor.config;
 
+import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.urlmonitor.auth.AuthTypeEnum;
 import com.appdynamics.extensions.urlmonitor.auth.SSLCertAuth;
 import com.appdynamics.extensions.urlmonitor.httpClient.ClientFactory;
-import com.ning.http.client.AsyncHttpClient;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
+import io.netty.handler.ssl.SslContext;
+import org.asynchttpclient.DefaultAsyncHttpClient;
+import org.slf4j.Logger;
 
-import javax.net.ssl.SSLContext;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,8 +25,11 @@ import java.util.List;
 
 public class RequestConfig {
 
+    private static final Logger logger = ExtensionsLoggerFactory.getLogger(RequestConfig.class);
+
     private SiteConfig siteConfig;
-    private AsyncHttpClient client;
+
+    private DefaultAsyncHttpClient client;
 
     public SiteConfig getSiteConfig() {
         return siteConfig;
@@ -34,17 +39,17 @@ public class RequestConfig {
         this.siteConfig = siteConfig;
     }
 
-    public AsyncHttpClient getClient() {
+    public DefaultAsyncHttpClient getClient() {
         return client;
     }
 
-    public void setClient(AsyncHttpClient client) {
+    public void setClient(DefaultAsyncHttpClient client) {
         this.client = client;
     }
 
-    private AsyncHttpClient defaultClient = null;
+    private DefaultAsyncHttpClient defaultClient = null;
 
-    public List<RequestConfig> setClientForSite(ClientConfig clientConfig, DefaultSiteConfig defaultSiteConfig, List<SiteConfig> siteConfig) throws TaskExecutionException{
+    public List<RequestConfig> setClientForSite(ClientConfig clientConfig, DefaultSiteConfig defaultSiteConfig, List<SiteConfig> siteConfig) throws TaskExecutionException {
 
         List<RequestConfig> requestConfigList = new ArrayList<RequestConfig>();
 
@@ -52,31 +57,40 @@ public class RequestConfig {
             for (SiteConfig site : siteConfig) {
                 RequestConfig requestConfig = new RequestConfig();
                 requestConfig.setSiteConfig(site);
-                if (site.getAuthType().equalsIgnoreCase(AuthTypeEnum.SSL.name())) {
-                    if(site.getTrustStorePassword()!=null && site.getTrustStorePath()!=null) {
-                        System.setProperty("javax.net.ssl.trustStore", site.getTrustStorePath());
-                        System.setProperty("javax.net.ssl.trustStorePassword", site.getTrustStorePassword());
+
+                try {
+                    if (AuthTypeEnum.SSL.name().equalsIgnoreCase(site.getAuthType())) {
+                        if (site.getTrustStorePassword() != null && site.getTrustStorePath() != null) {
+                            System.setProperty("javax.net.ssl.trustStore", site.getTrustStorePath());
+                            System.setProperty("javax.net.ssl.trustStorePassword", site.getTrustStorePassword());
+                        }
+                        SslContext sslContext = new SSLCertAuth().getSSLContext(site.getKeyStorePath(), site.getKeyStoreType(), site.getKeyStorePassword());
+                        requestConfig.setClient(new ClientFactory().createHttpClient(clientConfig, defaultSiteConfig, AuthTypeEnum.SSL.name(), sslContext));
+
+
+                    } else {
+                        if (defaultClient == null || defaultClient.isClosed()) {
+                            defaultClient = new ClientFactory().createHttpClient(clientConfig, defaultSiteConfig, AuthTypeEnum.NONE.name(), null);
+                        }
+                        requestConfig.setClient(defaultClient);
                     }
-                    SSLContext sslContext = new SSLCertAuth().getSSLContext(site.getKeyStorePath(), site.getKeyStoreType(), site.getKeyStorePassword());
-                    requestConfig.setClient(new ClientFactory().createHttpClient(clientConfig, defaultSiteConfig, AuthTypeEnum.SSL.name(), sslContext));
-                } else {
-                    if (defaultClient == null || defaultClient.isClosed()) {
-                        defaultClient = new ClientFactory().createHttpClient(clientConfig, defaultSiteConfig, AuthTypeEnum.NONE.name(), null);
-                    }
-                    requestConfig.setClient(defaultClient);
+
+                } catch (Exception ex) {
+                    logger.error("Error occurred for site: " + site.getName() + " and for uri: " + site.getUrl(), ex);
                 }
+
                 requestConfigList.add(requestConfig);
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             throw new TaskExecutionException(e);
         }
 
         return requestConfigList;
     }
 
-    public void closeClients(List<RequestConfig> configList){
-        for(RequestConfig requestConfig : configList){
-            if(!(requestConfig.getClient().isClosed())){
+    public void closeClients(List<RequestConfig> configList) {
+        for (RequestConfig requestConfig : configList) {
+            if (requestConfig.getClient() != null && !(requestConfig.getClient().isClosed())) {
                 requestConfig.getClient().close();
             }
         }
