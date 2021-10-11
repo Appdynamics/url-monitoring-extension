@@ -94,7 +94,6 @@ sites:
 #      username: ""
 #      password: ""
 
-
 metricConfig:
 
   - name: "Average Response Time (ms)"

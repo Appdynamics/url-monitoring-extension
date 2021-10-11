@@ -18,6 +18,7 @@ The URL monitoring extension gathers metrics and sends them to the AppDynamics M
 4. Configure the extension by referring to the Configuration section.
 5. Restart the Machine Agent.
 
+
 Please place the extension in the **"monitors"** directory of your Machine Agent installation directory. Do not place the extension in the **"extensions"** directory of your Machine Agent installation directory.
 
 ## Configuration
