@@ -12,7 +12,7 @@ clientConfig:
   maxConnPerRoute: 1000
   ignoreSslErrors: true
   #Comma separated list of enabled protocols
-  #enabledProtocols:TLSv1,TLSv1.2,TLSv1.1
+  #enabledProtocols: TLSv1,TLSv1.2,TLSv1.1
   userAgent:       Mozilla/5.0 (compatible; AppDynamics UrlMonitor; http://www.appdynamics.com/)
 
 defaultParams:
@@ -39,60 +39,60 @@ sites:
     authType: BASIC
 
   # Basic Authentication with password encryption
-  - name:       My Controller
-    url:        https://mycontroller.saas.appdynamics.com/controller/rest/applications
-    username:   demouser@customer1
-    password:   welcome
-    encryptionKey: ""
-    encryptedPassword: "IGVtC9eudmgG8RDjmRjGPQ=="
-    authType: BASIC
+#  - name:       My Controller
+#    url:        https://mycontroller.saas.appdynamics.com/controller/rest/applications
+#    username:   demouser@customer1
+#    password:   welcome
+#    encryptionKey: ""
+#    encryptedPassword: "IGVtC9eudmgG8RDjmRjGPQ=="
+#    authType: BASIC
 
-  - name:     File Download
-    url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
+#  - name:     File Download
+#    url:      https://github.com/Appdynamics/url-monitoring-extension/releases/download/1.0.6/UrlMonitor.zip
 
   #NTLM Auth Sample Configuration
-  - name:     My Controller
-    url:      http://localhost:8090/controller
-    username: user@DOMAIN
-    password: password
-    authType: NTLM
+#  - name:     My Controller 2
+#    url:      http://localhost:8090/controller
+#    username: user@DOMAIN
+#    password: password
+#    authType: NTLM
 
     # Client Cert Auth Sample Configuration
-  - name:         LocalHost
-    url:          https://localhost:8443
-    password:     password
-    authType:     SSL
-    keyStoreType: SUNX509
-    keyStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
-    keyStorePassword: password
-    trustStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
-    trustStorePassword: password
+#  - name:         LocalHost
+#    url:          https://localhost:8443
+#    password:     password
+#    authType:     SSL
+#    keyStoreType: SUNX509
+#    keyStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
+#    keyStorePassword: password
+#    trustStorePath: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/client.jks
+#    trustStorePassword: password
 
     #POST request sample configuration
-  - name:     My POST site
-    url:      http://localhost:8293/api/v1/metrics
-    username:
-    password:
-    connectTimeout: 60000
-    usePreemptiveAuth: true
-    method:   POST
-    headers:
-      Content-Type: application/json
-    requestPayloadFile: src/test/resources/conf/postrequestPayloadFile
-    matchPatterns:
-      - name:       Error
-        type:       substring
-        pattern:    Error 400
+#  - name:     My POST site
+#    url:      http://localhost:8293/api/v1/metrics
+#    username:
+#    password:
+#    connectTimeout: 60000
+#    usePreemptiveAuth: true
+#    method:   POST
+#    headers:
+#      Content-Type: application/json
+#    requestPayloadFile: src/test/resources/conf/postrequestPayloadFile
+#    matchPatterns:
+#      - name:       Error
+#        type:       substring
+#        pattern:    Error 400
 
     #Proxy Configuration
-  - name:     Google
-    url:      http://www.google.com
-    groupName: MySites
-    proxyConfig:
-      host: "localhost"
-      port: 80
-      username: ""
-      password: ""
+#  - name:     Google with proxy
+#    url:      http://www.google.com
+#    groupName: MySites
+#    proxyConfig:
+#      host: "localhost"
+#      port: 80
+#      username: ""
+#      password: ""
 
 
 metricConfig:
@@ -159,5 +159,3 @@ controllerInfo:
 
 #Encryption key for your controllerInfo password
 encryptionKey: "abcd"
-
-enableHealthChecks: false

@@ -8,16 +8,17 @@ This extension works only with the standalone machine agent. It has been tested 
 The URL monitoring extension gathers metrics and sends them to the AppDynamics Metric Browser.
 
 ## Pre-requisites
-Before the extension is installed, the prerequisites mentioned [here](https://community.appdynamics.com/t5/Knowledge-Base/Extensions-Prerequisites-Guide/ta-p/35213) need to be met. Please do not proceed with the extension installation if the specified prerequisites are not met.
+1. Before the extension is installed, the prerequisites mentioned [here](https://community.appdynamics.com/t5/Knowledge-Base/Extensions-Prerequisites-Guide/ta-p/35213) need to be met. Please do not proceed with the extension installation if the specified prerequisites are not met.
+2. Download and install [Apache Maven](https://maven.apache.org/) which is configured with `Java 8` to build the extension artifact from source. You can check the java version used in maven using command `mvn -v` or `mvn --version`. If your maven is using some other java version then please download java 8 for your platform and set JAVA_HOME parameter before starting maven.
 
 ## Installation
+1. Clone the "url-monitoring-extension" repo using `git clone <repoUrl>` command.
+2. To build from source, clone this repository and run 'mvn clean install'. This will produce a UrlMonitor-VERSION.zip in the target directory.
+3. Unzip URLMonitor-VERSION.zip and copy the 'UrlMonitor' directory to `<MACHINE_AGENT_HOME>/monitors/`
+4. Configure the extension by referring to the Configuration section.
+5. Restart the Machine Agent.
 
-1. To build from source, clone this repository and run 'mvn clean install'. This will produce a UrlMonitor-VERSION.zip in the target directory. Alternatively, download the latest release archive from [Github](https://github.com/Appdynamics/url-monitoring-extension/releases)
-2. Unzip URLMonitor.zip and copy the 'UrlMonitor' directory to `<MACHINE_AGENT_HOME>/monitors/`
-3. Configure the extension by referring to the below section.
-4. Restart the Machine Agent. 
- 
-In the AppDynamics Metric Browser, look for: Application Infrastructure Performance  | \<Tier\> | Custom Metrics | URLMonitor (or the custom path you specified).
+Please place the extension in the **"monitors"** directory of your Machine Agent installation directory. Do not place the extension in the **"extensions"** directory of your Machine Agent installation directory.
 
 ## Configuration
 
@@ -32,7 +33,7 @@ Note that the path is relative to `$AGENT_HOME`.
 ```
 
 The main configuration for this extension then lives in a file called `config.yaml`. It uses a simple syntax that anyone can edit with a simple text editor. 
-**Note: Please avoid using tab (\t) when editing yaml files. You may want to validate the yaml file using a [yaml validator](http://yamllint.com/).**
+**Note: Please avoid using tab (\t) when editing yaml files. You may want to validate the yaml file using a [yaml validator](https://jsonformatter.org/yaml-validator).**
 
 Here's a sample:
 
@@ -291,24 +292,7 @@ Please visit [this page](https://community.appdynamics.com/t5/Knowledge-Base/How
 Workbench is an inbuilt feature provided with each extension in order to assist you to fine tune the extension setup before you actually deploy it on the controller. Please review the following document on [How to use the Extensions WorkBench](https://community.appdynamics.com/t5/Knowledge-Base/How-to-use-the-Extensions-WorkBench/ta-p/30130)
 
 ## Troubleshooting
-Please follow the steps listed in this [troubleshooting-document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-troubleshoot-missing-custom-metrics-or-extensions-metrics/ta-p/28695) in order to troubleshoot your issue. These are a set of common issues that customers might have faced during the installation of the extension. If these don't solve your issue, please follow the last step on the [troubleshooting-document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-troubleshoot-missing-custom-metrics-or-extensions-metrics/ta-p/28695) to contact the support team.
-
-## Support Tickets
-If after going through the [Troubleshooting Document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-troubleshoot-missing-custom-metrics-or-extensions-metrics/ta-p/28695) you have not been able to get your extension working, please file a ticket and add the following information.
-
-Please provide the following in order for us to assist you better.
-
-    1. Stop the running machine agent.
-    2. Delete all existing logs under <MachineAgent>/logs.
-    3. Please enable debug logging by editing the file <MachineAgent>/conf/logging/log4j.xml. Change the level value of the following <logger> elements to debug.
-        <logger name="com.singularity">
-        <logger name="com.appdynamics">
-    4. Start the machine agent and please let it run for 10 mins. Then zip and upload all the logs in the directory <MachineAgent>/logs/*.
-    5. Attach the zipped <MachineAgent>/conf/* directory here.
-    6. Attach the zipped <MachineAgent>/monitors/ExtensionFolderYouAreHavingIssuesWith directory here.
-
-For any support related questions, you can also contact help@appdynamics.com.
-
+Please follow the steps listed in this [troubleshooting-document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-troubleshoot-missing-custom-metrics-or-extensions-metrics/ta-p/28695) in order to troubleshoot your issue. These are a set of common issues that customers might have faced during the installation of the extension.
 
 ## Contributing
 
@@ -317,8 +301,8 @@ Always feel free to fork and contribute any changes directly here on [GitHub](ht
 ## Version
 |          Name            |  Version   |
 |--------------------------|------------|
-|Extension Version         |2.0.2       |
-|Controller Compatibility  |4.5 or Later|
-|Machine Agent Version     |4.5.13+     |
-|Last Update               |08/11/2020  |
+|Extension Version         |2.2.0       |
+|Last Update               |05/10/2021  |
+|Change List               |[ChangeLog](https://github.com/Appdynamics/url-monitoring-extension/blob/master/CHANGELOG.md)|
 
+**Note**: While extensions are maintained and supported by customers under the open-source licensing model, they interact with agents and Controllers that are subject to [AppDynamics’ maintenance and support policy](https://docs.appdynamics.com/latest/en/product-and-release-announcements/maintenance-support-for-software-versions). Some extensions have been tested with AppDynamics 4.5.13+ artifacts, but you are strongly recommended against using versions that are no longer supported.
