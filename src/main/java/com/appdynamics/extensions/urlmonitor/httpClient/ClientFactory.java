@@ -23,6 +23,8 @@ import org.asynchttpclient.Dsl;
 import org.asynchttpclient.proxy.ProxyServer;
 import org.slf4j.Logger;
 
+import java.time.Duration;
+
 
 /**
  * Factory to create the suitable client object based on the authentication type
@@ -46,8 +48,8 @@ public class ClientFactory {
         try {
             builder.setUseInsecureTrustManager(clientConfig.isIgnoreSslErrors())
                     .setMaxRedirects(clientConfig.getMaxRedirects())
-                    .setConnectTimeout(defaultSiteConfig.getConnectTimeout())
-                    .setRequestTimeout(defaultSiteConfig.getSocketTimeout())
+                    .setConnectTimeout(Duration.ofMillis(defaultSiteConfig.getConnectTimeout()))
+                    .setRequestTimeout(Duration.ofMillis(defaultSiteConfig.getSocketTimeout()))
                     .setMaxConnectionsPerHost(clientConfig.getMaxConnPerRoute())
                     .setMaxConnections(clientConfig.getMaxConnTotal())
                     .setUserAgent(clientConfig.getUserAgent())
