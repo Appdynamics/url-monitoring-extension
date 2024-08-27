@@ -9,7 +9,8 @@ The URL monitoring extension gathers metrics and sends them to the AppDynamics M
 
 ## Pre-requisites
 1. Before the extension is installed, the prerequisites mentioned [here](https://community.appdynamics.com/t5/Knowledge-Base/Extensions-Prerequisites-Guide/ta-p/35213) need to be met. Please do not proceed with the extension installation if the specified prerequisites are not met.
-2. Download and install [Apache Maven](https://maven.apache.org/) which is configured with `Java 8` to build the extension artifact from source. You can check the java version used in maven using command `mvn -v` or `mvn --version`. If your maven is using some other java version then please download java 8 for your platform and set JAVA_HOME parameter before starting maven.
+2. This extension uses Java 11 as some of the vulnerability fixes needed Java 11. 
+3. Download and install [Apache Maven](https://maven.apache.org/) which is configured with `Java 11` to build the extension artifact from source. You can check the java version used in maven using command `mvn -v` or `mvn --version`. If your maven is using some other java version then please download java 11 for your platform and set JAVA_HOME parameter before starting maven.
 
 ## Installation
 1. Clone the "url-monitoring-extension" repo using `git clone <repoUrl>` command.
@@ -302,8 +303,8 @@ Always feel free to fork and contribute any changes directly here on [GitHub](ht
 ## Version
 |          Name            |  Version   |
 |--------------------------|------------|
-|Extension Version         |2.2.0       |
-|Last Update               |05/10/2021  |
+|Extension Version         |2.2.1       |
+|Last Update               |08/27/2024  |
 |Change List               |[ChangeLog](https://github.com/Appdynamics/url-monitoring-extension/blob/master/CHANGELOG.md)|
 
 **Note**: While extensions are maintained and supported by customers under the open-source licensing model, they interact with agents and Controllers that are subject to [AppDynamics’ maintenance and support policy](https://docs.appdynamics.com/latest/en/product-and-release-announcements/maintenance-support-for-software-versions). Some extensions have been tested with AppDynamics 4.5.13+ artifacts, but you are strongly recommended against using versions that are no longer supported.
